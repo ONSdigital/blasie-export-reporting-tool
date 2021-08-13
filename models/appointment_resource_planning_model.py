@@ -1,17 +1,24 @@
 from dataclasses import dataclass, fields
 
+from pypika.terms import Function
+
 
 from models.database_base_model import DataBaseBase
 
-from pypika import Query, Tables, Function, Case, Order, AliasedQuery
+
+from pypika import Query, Tables, Case, Order, AliasedQuery
 
 from pypika import functions as SQLFuncs
 
 # TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
 class TimeFormat(Function):
     def __init__(self, field, format, alias=None):
-        print(f"TIMEFORMAT {field} {format}")
-        super(TimeFormat, self).__init__("TIME_FORMAT", field, format, alias=alias)
+        self.format = format
+        super().__init__("TIME_FORMAT", field, alias=alias)
+        print(self.get_function_sql())
+
+    def get_special_params_sql(self, **kwargs):
+        return f'"{self.format}"'
 
 
 @dataclass
