@@ -1,12 +1,17 @@
 from dataclasses import dataclass, fields
 
+
 from models.database_base_model import DataBaseBase
 
-from pypika import Query, Tables, CustomFunction, Case, Order, AliasedQuery
+from pypika import Query, Tables, Function, Case, Order, AliasedQuery
 
 from pypika import functions as SQLFuncs
 
-TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
+# TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
+class TimeFormat(Function):
+    def __init__(self, field, format, alias=None):
+        print(f"TIMEFORMAT {field} {format}")
+        super(TimeFormat, self).__init__("TIME_FORMAT", field, format, alias=alias)
 
 
 @dataclass
@@ -57,7 +62,7 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
             )
             .select(
                 dhci.InstrumentId,
-                TimeFormat(dhci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
+                TimeFormat(dhci.AppointmentStartTime, "%H:%%i").as_("AppointmentTime"),
                 Case()
                 .when(
                     dhci.GroupName == "TNS"
