@@ -1,24 +1,12 @@
 from dataclasses import dataclass, fields
 
-from pypika.terms import Function
-
-
 from models.database_base_model import DataBaseBase
 
 
-from pypika import Query, Tables, Case, Order, AliasedQuery
-
+from pypika import MySQLQuery, Tables, Case, Order, AliasedQuery, CustomFunction
 from pypika import functions as SQLFuncs
 
-# TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
-class TimeFormat(Function):
-    def __init__(self, field, format, alias=None):
-        self.format = format
-        super().__init__("TIME_FORMAT", field, alias=alias)
-        print(self.get_function_sql())
-
-    def get_special_params_sql(self, **kwargs):
-        return f'"{self.format}"'
+TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
 
 
 @dataclass
@@ -47,12 +35,12 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
     def get_appointments_for_date(cls, config, date):
         dhci, dial_history = Tables(cls.table_name(), "DialHistory")
         query = (
-            Query()
+            MySQLQuery()
             .from_(dhci)
             .left_join(
                 AliasedQuery(
                     "dh",
-                    Query()
+                    MySQLQuery()
                     .select(
                         dial_history.InstrumentId,
                         dial_history.PrimaryKeyValue,
