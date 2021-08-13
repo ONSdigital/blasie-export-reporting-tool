@@ -2,6 +2,12 @@ from dataclasses import dataclass, fields
 
 from models.database_base_model import DataBaseBase
 
+from pypika import Query, Tables, CustomFunction, Case, Order, AliasedQuery
+
+from pypika import functions as SQLFuncs
+
+TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
+
 
 @dataclass
 class AppointmentResourcePlanning:
@@ -27,61 +33,72 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
 
     @classmethod
     def get_appointments_for_date(cls, config, date):
-        query = f"""        
-            SELECT
-               dbci.InstrumentId,
-               TIME_FORMAT(dbci.AppointmentStartTime, "%H:%i") AS AppointmentTime,
-               CASE
-                  WHEN
-                     dbci.GroupName = "TNS" 
-                     OR dbci.SelectFields LIKE '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%' 
-                     OR dh.AdditionalData LIKE '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\\'TNS\\'"/>%' 
-                  THEN
-                     "Other" 
-                  WHEN
-                     dbci.GroupName = "WLS" 
-                     OR dbci.SelectFields LIKE '%<Field FieldName="QDataBag.IntGroup">WLS</Field>%' 
-                     OR dh.AdditionalData LIKE '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\\'WLS\\'"/>%' 
-                  THEN
-                     "Welsh" 
-                  ELSE
-                     "English" 
-               END
-               AS AppointmentLanguage, dh.DialResult, COUNT(*) AS Total 
-            FROM
-               {cls.table_name()} AS dbci 
-               LEFT JOIN
-                  (
-                     SELECT
-                        InstrumentId,
-                        PrimaryKeyValue,
-                        AdditionalData,
-                        DialResult,
-                        MAX(StartTime) 
-                     FROM
-                        DialHistory 
-                     GROUP BY
-                        InstrumentId,
-                        PrimaryKeyValue,
-                        AdditionalData,
-                        DialResult
-                  )
-                  AS dh 
-                  ON dh.InstrumentId = dbci.InstrumentId 
-                  AND dh.PrimaryKeyValue = dbci.PrimaryKeyValue 
-            WHERE
-               dbci.AppointmentType != "0" 
-               AND dbci.AppointmentStartDate like "{date}%" 
-            GROUP BY
-               dbci.InstrumentId,
-               AppointmentTime,
-               AppointmentLanguage,
-               dh.DialResult 
-            ORDER BY
-               AppointmentTime ASC,
-               AppointmentLanguage ASC
-        """
-        return cls.query(config, query)
+        dhci, dial_history = Tables(cls.table_name(), "DialHistory")
+        query = (
+            Query()
+            .from_(dhci)
+            .left_join(
+                AliasedQuery(
+                    "dh",
+                    Query()
+                    .select(
+                        dial_history.InstrumentId,
+                        dial_history.PrimaryKeyValue,
+                        dial_history.AdditionalData,
+                        dial_history.DialResult,
+                        SQLFuncs.Max(dial_history.StartTime),
+                    )
+                    .from_(dial_history),
+                ),
+            )
+            .on_field(
+                dial_history.InsturmentId == dhci.InstrumentId
+                and dial_history.PrimaryKeyValue == dhci.PrimaryKeyValue
+            )
+            .select(
+                dhci.InstrumentId,
+                TimeFormat(dhci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
+                Case()
+                .when(
+                    dhci.GroupName == "TNS"
+                    or dhci.SelectFields.like(
+                        '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
+                    )
+                    or AliasedQuery("dh").AdditonalData.like(
+                        """%<Field Name="QDataBag.IntGroup" Status="Response" Value="\\'TNS\\'"/>%"""
+                    ),
+                    "Other",
+                )
+                .when(
+                    dhci.GroupName == "WLS"
+                    or dhci.SelectFields.like(
+                        '%<Field FieldName="QDataBag.IntGrop">WLS</Field>%'
+                    )
+                    or AliasedQuery("dh").AdditionalData.like(
+                        """%<Field Name="QDataBag.IntGroup" Status="Response" Value="\\'WLS\\'"/>%"""
+                    ),
+                    "Welsh",
+                )
+                .else_("English")
+                .as_("AppontmentLanguage"),
+                AliasedQuery("dh").DialResult,
+                SQLFuncs.Count("*").as_("Total"),
+            )
+            .where(
+                dhci.AppointmentType != "0"
+                and dhci.AppointmentStartDate.like(f"{date}%")
+            )
+            .groupby(
+                dhci.InstrumentId,
+                "AppointmentTime",
+                "AppointmentLanguage",
+                dial_history.DialResult,
+            )
+            .orderby("AppointmentTime", order=Order.asc)
+            .orderby("AppointmentLanguage", order=Order.asc)
+        )
+
+        return cls.query(config, str(query))
 
     @classmethod
     def table_name(cls):
