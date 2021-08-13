@@ -33,10 +33,10 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
 
     @classmethod
     def get_appointments_for_date(cls, config, date):
-        dhci, dial_history = Tables(cls.table_name(), "DialHistory")
+        dbci, dial_history = Tables(cls.table_name(), "DialHistory")
         query = (
             MySQLQuery()
-            .from_(dhci)
+            .from_(dbci)
             .left_join(
                 AliasedQuery(
                     "dh",
@@ -48,34 +48,49 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                         dial_history.DialResult,
                         SQLFuncs.Max(dial_history.StartTime),
                     )
+                    .groupby(
+                        dial_history.InstrumentId,
+                        dial_history.PrimaryKeyValue,
+                        dial_history.AdditionalData,
+                        dial_history.DialResult,
+                    )
+                    .as_("dh")
                     .from_(dial_history),
                 ),
             )
             .on_field(
-                dial_history.InsturmentId == dhci.InstrumentId
-                and dial_history.PrimaryKeyValue == dhci.PrimaryKeyValue
+                (AliasedQuery("dh").InsturmentId == dbci.InstrumentId)
+                & (AliasedQuery("dh").PrimaryKeyValue == dbci.PrimaryKeyValue)
             )
             .select(
-                dhci.InstrumentId,
-                TimeFormat(dhci.AppointmentStartTime, "%H:%%i").as_("AppointmentTime"),
+                dbci.InstrumentId,
+                TimeFormat(dbci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
                 Case()
                 .when(
-                    dhci.GroupName == "TNS"
-                    or dhci.SelectFields.like(
-                        '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
+                    (dbci.GroupName == "TNS")
+                    | (
+                        dbci.SelectFields.like(
+                            '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
+                        )
                     )
-                    or AliasedQuery("dh").AdditonalData.like(
-                        """%<Field Name="QDataBag.IntGroup" Status="Response" Value="\\'TNS\\'"/>%"""
+                    | (
+                        AliasedQuery("dh").AdditonalData.like(
+                            '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'TNS\'"/>%'
+                        )
                     ),
                     "Other",
                 )
                 .when(
-                    dhci.GroupName == "WLS"
-                    or dhci.SelectFields.like(
-                        '%<Field FieldName="QDataBag.IntGrop">WLS</Field>%'
+                    (dbci.GroupName == "WLS")
+                    | (
+                        dbci.SelectFields.like(
+                            '%<Field FieldName="QDataBag.IntGrop">WLS</Field>%'
+                        )
                     )
-                    or AliasedQuery("dh").AdditionalData.like(
-                        """%<Field Name="QDataBag.IntGroup" Status="Response" Value="\\'WLS\\'"/>%"""
+                    | (
+                        AliasedQuery("dh").AdditionalData.like(
+                            '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'WLS\'"/>%'
+                        )
                     ),
                     "Welsh",
                 )
@@ -85,11 +100,11 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                 SQLFuncs.Count("*").as_("Total"),
             )
             .where(
-                dhci.AppointmentType != "0"
-                and dhci.AppointmentStartDate.like(f"{date}%")
+                (dbci.AppointmentType != "0")
+                & (dbci.AppointmentStartDate.like(f"{date}%"))
             )
             .groupby(
-                dhci.InstrumentId,
+                dbci.InstrumentId,
                 "AppointmentTime",
                 "AppointmentLanguage",
                 dial_history.DialResult,
