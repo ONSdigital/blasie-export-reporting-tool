@@ -1,10 +1,9 @@
 from dataclasses import dataclass, fields
 
-from models.database_base_model import DataBaseBase
-
-
 from pypika import MySQLQuery, Tables, Case, Order, AliasedQuery, CustomFunction
 from pypika import functions as SQLFuncs
+
+from models.database_base_model import DataBaseBase
 
 TimeFormat = CustomFunction("TIME_FORMAT", ["field", "format"])
 
@@ -33,58 +32,58 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
 
     @classmethod
     def get_appointments_for_date(cls, config, date):
-        dbci, dial_history = Tables(cls.table_name(), "DialHistory")
+        dci, dh = Tables("DaybatchCaseInfo", "DialHistory")
         query = (
             MySQLQuery()
-            .from_(dbci)
-            .left_join(
+                .from_(dci)
+                .left_join(
                 AliasedQuery(
                     "dh",
                     MySQLQuery()
-                    .select(
-                        dial_history.InstrumentId,
-                        dial_history.PrimaryKeyValue,
-                        dial_history.AdditionalData,
-                        dial_history.DialResult,
-                        SQLFuncs.Max(dial_history.StartTime),
+                        .select(
+                        dh.InstrumentId,
+                        dh.PrimaryKeyValue,
+                        dh.AdditionalData,
+                        dh.DialResult,
+                        SQLFuncs.Max(dh.StartTime),
                     )
-                    .groupby(
-                        dial_history.InstrumentId,
-                        dial_history.PrimaryKeyValue,
-                        dial_history.AdditionalData,
-                        dial_history.DialResult,
+                        .groupby(
+                        dh.InstrumentId,
+                        dh.PrimaryKeyValue,
+                        dh.AdditionalData,
+                        dh.DialResult,
                     )
-                    .as_("dh")
-                    .from_(dial_history),
+                        .as_("dh")
+                        .from_(dh),
                 ),
             )
-            .on_field(
-                (AliasedQuery("dh").InsturmentId == dbci.InstrumentId)
-                & (AliasedQuery("dh").PrimaryKeyValue == dbci.PrimaryKeyValue)
+                .on_field(
+                (AliasedQuery("dh").InsturmentId == dci.InstrumentId)
+                & (AliasedQuery("dh").PrimaryKeyValue == dci.PrimaryKeyValue)
             )
-            .select(
-                dbci.InstrumentId,
-                TimeFormat(dbci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
+                .select(
+                dci.InstrumentId,
+                TimeFormat(dci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
                 Case()
-                .when(
-                    (dbci.GroupName == "TNS")
+                    .when(
+                    (dci.GroupName == "TNS")
                     | (
-                        dbci.SelectFields.like(
+                        dci.SelectFields.like(
                             '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
                         )
                     )
                     | (
-                        AliasedQuery("dh").AdditonalData.like(
+                        AliasedQuery("dh").AdditionalData.like(
                             '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'TNS\'"/>%'
                         )
                     ),
                     "Other",
                 )
-                .when(
-                    (dbci.GroupName == "WLS")
+                    .when(
+                    (dci.GroupName == "WLS")
                     | (
-                        dbci.SelectFields.like(
-                            '%<Field FieldName="QDataBag.IntGrop">WLS</Field>%'
+                        dci.SelectFields.like(
+                            '%<Field FieldName="QDataBag.IntGroup">WLS</Field>%'
                         )
                     )
                     | (
@@ -94,23 +93,23 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                     ),
                     "Welsh",
                 )
-                .else_("English")
-                .as_("AppontmentLanguage"),
+                    .else_("English")
+                    .as_("AppontmentLanguage"),
                 AliasedQuery("dh").DialResult,
                 SQLFuncs.Count("*").as_("Total"),
             )
-            .where(
-                (dbci.AppointmentType != "0")
-                & (dbci.AppointmentStartDate.like(f"{date}%"))
+                .where(
+                (dci.AppointmentType != "0")
+                & (dci.AppointmentStartDate.like(f"{date}%"))
             )
-            .groupby(
-                dbci.InstrumentId,
+                .groupby(
+                dci.InstrumentId,
                 "AppointmentTime",
                 "AppointmentLanguage",
-                dial_history.DialResult,
+                dh.DialResult,
             )
-            .orderby("AppointmentTime", order=Order.asc)
-            .orderby("AppointmentLanguage", order=Order.asc)
+                .orderby("AppointmentTime", order=Order.asc)
+                .orderby("AppointmentLanguage", order=Order.asc)
         )
 
         return cls.query(config, str(query))
