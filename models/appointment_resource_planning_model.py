@@ -35,37 +35,37 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
         dci, dh = Tables("DaybatchCaseInfo", "DialHistory")
         query = (
             MySQLQuery()
-                .from_(dci)
-                .left_join(
+            .from_(dci)
+            .left_join(
                 AliasedQuery(
                     "dh",
                     MySQLQuery()
-                        .select(
+                    .select(
                         dh.InstrumentId,
                         dh.PrimaryKeyValue,
                         dh.AdditionalData,
                         dh.DialResult,
                         SQLFuncs.Max(dh.StartTime),
                     )
-                        .groupby(
+                    .groupby(
                         dh.InstrumentId,
                         dh.PrimaryKeyValue,
                         dh.AdditionalData,
                         dh.DialResult,
                     )
-                        .as_("dh")
-                        .from_(dh),
+                    .as_("dh")
+                    .from_(dh),
                 ),
             )
-                .on_field(
+            .on(
                 (AliasedQuery("dh").InsturmentId == dci.InstrumentId)
                 & (AliasedQuery("dh").PrimaryKeyValue == dci.PrimaryKeyValue)
             )
-                .select(
+            .select(
                 dci.InstrumentId,
                 TimeFormat(dci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
                 Case()
-                    .when(
+                .when(
                     (dci.GroupName == "TNS")
                     | (
                         dci.SelectFields.like(
@@ -79,7 +79,7 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                     ),
                     "Other",
                 )
-                    .when(
+                .when(
                     (dci.GroupName == "WLS")
                     | (
                         dci.SelectFields.like(
@@ -93,23 +93,23 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                     ),
                     "Welsh",
                 )
-                    .else_("English")
-                    .as_("AppontmentLanguage"),
+                .else_("English")
+                .as_("AppontmentLanguage"),
                 AliasedQuery("dh").DialResult,
                 SQLFuncs.Count("*").as_("Total"),
             )
-                .where(
+            .where(
                 (dci.AppointmentType != "0")
                 & (dci.AppointmentStartDate.like(f"{date}%"))
             )
-                .groupby(
+            .groupby(
                 dci.InstrumentId,
                 "AppointmentTime",
                 "AppointmentLanguage",
                 dh.DialResult,
             )
-                .orderby("AppointmentTime", order=Order.asc)
-                .orderby("AppointmentLanguage", order=Order.asc)
+            .orderby("AppointmentTime", order=Order.asc)
+            .orderby("AppointmentLanguage", order=Order.asc)
         )
 
         return cls.query(config, str(query))
