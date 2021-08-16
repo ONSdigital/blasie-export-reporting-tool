@@ -110,7 +110,7 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                     "Welsh",
                 )
                 .else_("English")
-                .as_("AppontmentLanguage"),
+                .as_("AppointmentLanguage"),
                 AliasedQuery("dh").DialResult,
                 SQLFuncs.Count("*").as_("Total"),
             )
@@ -122,7 +122,7 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                 daybatch_case_info.InstrumentId,
                 AliasedQuery("AppointmentTime"),
                 AliasedQuery("AppointmentLanguage"),
-                dial_history.DialResult,
+                AliasedQuery("dh").DialResult,
             )
             .orderby(AliasedQuery("AppointmentTime"), order=Order.asc)
             .orderby(AliasedQuery("AppointmentLanguage"), order=Order.asc)
