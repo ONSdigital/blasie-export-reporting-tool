@@ -32,43 +32,48 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
 
     @classmethod
     def get_appointments_for_date(cls, config, date):
-        dci, dh = Tables("DaybatchCaseInfo", "DialHistory")
+        daybatch_case_info, dial_history = Tables("DaybatchCaseInfo", "DialHistory")
         query = (
             MySQLQuery()
-            .from_(dci)
+            .from_(daybatch_case_info)
             .left_join(
                 AliasedQuery(
                     "dh",
                     MySQLQuery()
                     .select(
-                        dh.InstrumentId,
-                        dh.PrimaryKeyValue,
-                        dh.AdditionalData,
-                        dh.DialResult,
-                        SQLFuncs.Max(dh.StartTime),
+                        dial_history.InstrumentId,
+                        dial_history.PrimaryKeyValue,
+                        dial_history.AdditionalData,
+                        dial_history.DialResult,
+                        SQLFuncs.Max(dial_history.StartTime),
                     )
                     .groupby(
-                        dh.InstrumentId,
-                        dh.PrimaryKeyValue,
-                        dh.AdditionalData,
-                        dh.DialResult,
+                        dial_history.InstrumentId,
+                        dial_history.PrimaryKeyValue,
+                        dial_history.AdditionalData,
+                        dial_history.DialResult,
                     )
                     .as_("dh")
-                    .from_(dh),
+                    .from_(dial_history),
                 ),
             )
             .on(
-                (AliasedQuery("dh").InsturmentId == dci.InstrumentId)
-                & (AliasedQuery("dh").PrimaryKeyValue == dci.PrimaryKeyValue)
+                (AliasedQuery("dh").InsturmentId == daybatch_case_info.InstrumentId)
+                & (
+                    AliasedQuery("dh").PrimaryKeyValue
+                    == daybatch_case_info.PrimaryKeyValue
+                )
             )
             .select(
-                dci.InstrumentId,
-                TimeFormat(dci.AppointmentStartTime, "%H:%i").as_("AppointmentTime"),
+                daybatch_case_info.InstrumentId,
+                TimeFormat(daybatch_case_info.AppointmentStartTime, "%H:%i").as_(
+                    "AppointmentTime"
+                ),
                 Case()
                 .when(
-                    (dci.GroupName == "TNS")
+                    (daybatch_case_info.GroupName == "TNS")
                     | (
-                        dci.SelectFields.like(
+                        daybatch_case_info.SelectFields.like(
                             '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
                         )
                     )
@@ -80,9 +85,9 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                     "Other",
                 )
                 .when(
-                    (dci.GroupName == "WLS")
+                    (daybatch_case_info.GroupName == "WLS")
                     | (
-                        dci.SelectFields.like(
+                        daybatch_case_info.SelectFields.like(
                             '%<Field FieldName="QDataBag.IntGroup">WLS</Field>%'
                         )
                     )
@@ -99,14 +104,14 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                 SQLFuncs.Count("*").as_("Total"),
             )
             .where(
-                (dci.AppointmentType != "0")
-                & (dci.AppointmentStartDate.like(f"{date}%"))
+                (daybatch_case_info.AppointmentType != "0")
+                & (daybatch_case_info.AppointmentStartDate.like(f"{date}%"))
             )
             .groupby(
-                dci.InstrumentId,
+                daybatch_case_info.InstrumentId,
                 "AppointmentTime",
                 "AppointmentLanguage",
-                dh.DialResult,
+                dial_history.DialResult,
             )
             .orderby("AppointmentTime", order=Order.asc)
             .orderby("AppointmentLanguage", order=Order.asc)
