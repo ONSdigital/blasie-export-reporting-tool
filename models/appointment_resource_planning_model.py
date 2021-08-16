@@ -1,6 +1,14 @@
 from dataclasses import dataclass, fields
 
-from pypika import MySQLQuery, Tables, Case, Order, AliasedQuery, CustomFunction
+from pypika import (
+    MySQLQuery,
+    Tables,
+    Case,
+    Order,
+    AliasedQuery,
+    CustomFunction,
+    Criterion,
+)
 from pypika import functions as SQLFuncs
 
 from models.database_base_model import DataBaseBase
@@ -58,10 +66,13 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                 ),
             )
             .on(
-                (AliasedQuery("dh").InsturmentId == daybatch_case_info.InstrumentId)
-                & (
-                    AliasedQuery("dh").PrimaryKeyValue
-                    == daybatch_case_info.PrimaryKeyValue
+                Criterion.all(
+                    [
+                        AliasedQuery("dh").InstrumentId
+                        == daybatch_case_info.InstrumentId,
+                        AliasedQuery("dh").PrimaryKeyValue
+                        == daybatch_case_info.PrimaryKeyValue,
+                    ]
                 )
             )
             .select(
@@ -71,30 +82,30 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
                 ),
                 Case()
                 .when(
-                    (daybatch_case_info.GroupName == "TNS")
-                    | (
-                        daybatch_case_info.SelectFields.like(
-                            '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
-                        )
-                    )
-                    | (
-                        AliasedQuery("dh").AdditionalData.like(
-                            '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'TNS\'"/>%'
-                        )
+                    Criterion.any(
+                        [
+                            daybatch_case_info.GroupName == "TNS",
+                            daybatch_case_info.SelectFields.like(
+                                '%<Field FieldName="QDataBag.IntGroup">TNS</Field>%'
+                            ),
+                            AliasedQuery("dh").AdditionalData.like(
+                                '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'TNS\'"/>%'
+                            ),
+                        ]
                     ),
                     "Other",
                 )
                 .when(
-                    (daybatch_case_info.GroupName == "WLS")
-                    | (
-                        daybatch_case_info.SelectFields.like(
-                            '%<Field FieldName="QDataBag.IntGroup">WLS</Field>%'
-                        )
-                    )
-                    | (
-                        AliasedQuery("dh").AdditionalData.like(
-                            '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'WLS\'"/>%'
-                        )
+                    Criterion.any(
+                        [
+                            daybatch_case_info.GroupName == "WLS",
+                            daybatch_case_info.SelectFields.like(
+                                '%<Field FieldName="QDataBag.IntGroup">WLS</Field>%'
+                            ),
+                            AliasedQuery("dh").AdditionalData.like(
+                                '%<Field Name="QDataBag.IntGroup" Status="Response" Value="\'WLS\'"/>%'
+                            ),
+                        ]
                     ),
                     "Welsh",
                 )
@@ -109,12 +120,12 @@ class CatiAppointmentResourcePlanningTable(DataBaseBase):
             )
             .groupby(
                 daybatch_case_info.InstrumentId,
-                "AppointmentTime",
-                "AppointmentLanguage",
+                AliasedQuery("AppointmentTime"),
+                AliasedQuery("AppointmentLanguage"),
                 dial_history.DialResult,
             )
-            .orderby("AppointmentTime", order=Order.asc)
-            .orderby("AppointmentLanguage", order=Order.asc)
+            .orderby(AliasedQuery("AppointmentTime"), order=Order.asc)
+            .orderby(AliasedQuery("AppointmentLanguage"), order=Order.asc)
         )
 
         return cls.query(config, str(query))
