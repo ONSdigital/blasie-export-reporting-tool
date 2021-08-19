@@ -17,7 +17,7 @@ from reports.interviewer_call_pattern_report import (
 def test_get_call_pattern_report_when_data_is_completely_invalid(call_history_records, mocker):
     mock_interviewer_name = 'el4president'
     mock_date = '2022-01-24'
-    mock_discounted_invalid_records = "numberwang"
+    mock_discounted_invalid_records = ["100", 100]
     mock_invalid_fields = "aaaaaaaallll the fields"
 
     mocker.patch("reports.interviewer_call_pattern_report.get_call_history_records",
@@ -25,11 +25,11 @@ def test_get_call_pattern_report_when_data_is_completely_invalid(call_history_re
     mocker.patch("reports.interviewer_call_pattern_report.validate_dataframe",
                  return_value=(pd.DataFrame(), mock_discounted_invalid_records, mock_invalid_fields))
 
-    assert get_call_pattern_records_by_interviewer_and_date_range(
-        mock_interviewer_name,
-        mock_date,
-        mock_date) == InterviewerCallPatternWithNoValidData(
-        discounted_invalid_records=mock_discounted_invalid_records,
+    x = get_call_pattern_records_by_interviewer_and_date_range(
+        mock_interviewer_name, mock_date, mock_date, None)
+
+    assert x == InterviewerCallPatternWithNoValidData(
+        discounted_invalid_cases=f"{mock_discounted_invalid_records[0]}, {mock_discounted_invalid_records[1]}%",
         invalid_fields=mock_invalid_fields
     )
 

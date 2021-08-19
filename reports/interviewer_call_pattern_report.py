@@ -29,10 +29,10 @@ def get_call_pattern_records_by_interviewer_and_date_range(interviewer_name, sta
     valid_dataframe, discounted_records, discounted_fields = validate_dataframe(call_history_dataframe)
 
     if valid_dataframe.empty:
-        report = InterviewerCallPatternWithNoValidData()
-        report.discounted_invalid_records = discounted_records
-        report.invalid_fields = discounted_fields
-        return report
+        return InterviewerCallPatternWithNoValidData(
+            discounted_invalid_cases=f"{discounted_records[0]}, {discounted_records[1]}%",
+            invalid_fields=discounted_fields
+        )
 
     report = generate_report(valid_dataframe, len(call_history_dataframe.index), discounted_records, discounted_fields)
     return report

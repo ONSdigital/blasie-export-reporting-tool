@@ -28,7 +28,7 @@ class InterviewerCallPattern:
 
 @dataclass
 class InterviewerCallPatternWithNoValidData:
-    discounted_invalid_records: str = "0"
+    discounted_invalid_cases: str = "0"
     invalid_fields: str = "n/a"
 
     def json(self):
