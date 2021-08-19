@@ -85,24 +85,9 @@ def average_respondents_interviewed_per_hour(call_history_dataframe, string_hour
     return result
 
 
-def no_contact_breakdown(call_history_dataframe):
-    # le_dict = []
-    #
-    # no_contact_total = get_results_for_calls_with_status("no contact", "status", call_history_dataframe)
-    # answer_service = get_results_for_calls_with_status("no contact", "status", call_history_dataframe)
-    # busy = get_results_for_calls_with_status("no contact", "status", call_history_dataframe)
-    # disconnect = get_results_for_calls_with_status("no contact", "status", call_history_dataframe)
-    # no_answer = get_results_for_calls_with_status("no contact", "status", call_history_dataframe)
-    # other = get_results_for_calls_with_status("no contact", "status", call_history_dataframe)
-    #
-    # no_contact_df = call_history_dataframe.drop(call_history_dataframe.loc[call_history_dataframe['status'].str.contains('no contact', case=False)].index)
-
-    return call_history_dataframe.groupby(['status', 'call_result']).size()
-
-
-def results_for_calls_with_status(status, valid_df, denominator):
+def results_for_calls_with_status(column_name, status, valid_df, denominator):
     try:
-        numerator = valid_df['status'].str.contains(status, case=False).sum()
+        numerator = valid_df[column_name].str.contains(status, case=False, na=False).sum()
         percentage = 100 * numerator / denominator
     except Exception as err:
         raise BertException(f"Could not calculate the total for status containing '{status}': {err}", 400)

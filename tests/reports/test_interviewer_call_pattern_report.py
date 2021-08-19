@@ -15,6 +15,7 @@ from reports.interviewer_call_pattern_report import (
 from functions.interviewer_call_pattern_data_functions import (
     convert_seconds_to_datetime_format, hours_on_calls)
 
+
 def test_get_call_pattern_report_when_data_is_completely_invalid(call_history_records, mocker):
     mock_interviewer_name = 'el4president'
     mock_date = '2022-01-24'
@@ -94,13 +95,13 @@ def test_generate_report_returns_report_with_no_invalid_records(valid_dataframe)
         average_respondents_interviewed_per_hour=12.48,
         refusals='0/10, 0.0%',
         no_contacts='0/10, 0.0%',
-        answer_service='yoo-hoo',
-        busy='yoo-hoo',
-        disconnect='yoo-hoo',
-        no_answer='yoo-hoo',
-        other='yoo-hoo',
         completed_successfully='2/10, 20.0%',
         appointments_for_contacts='6/10, 60.0%',
+        no_contact_answer_service='n/a',
+        no_contact_busy='n/a',
+        no_contact_disconnect='n/a',
+        no_contact_no_answer='n/a',
+        no_contact_other='n/a',
         discounted_invalid_cases='0',
         invalid_fields='n/a')
 
@@ -115,16 +116,15 @@ def test_generate_report_returns_report_with_invalid_records(valid_dataframe):
         average_respondents_interviewed_per_hour=12.48,
         refusals='0/10, 0.0%',
         no_contacts='0/10, 0.0%',
-        answer_service='yoo-hoo',
-        busy='yoo-hoo',
-        disconnect='yoo-hoo',
-        no_answer='yoo-hoo',
-        other='yoo-hoo',
         completed_successfully='2/10, 20.0%',
         appointments_for_contacts='6/10, 60.0%',
+        no_contact_answer_service='n/a',
+        no_contact_busy='n/a',
+        no_contact_disconnect='n/a',
+        no_contact_no_answer='n/a',
+        no_contact_other='n/a',
         discounted_invalid_cases='1/10, 1%',
-        invalid_fields="'call_end_time' column had missing data"
-    )
+        invalid_fields="'call_end_time' column had missing data")
 
 
 def test_generate_report_raises_exception(dodgy_date_value_dataframe):

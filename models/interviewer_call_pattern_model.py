@@ -12,13 +12,13 @@ class InterviewerCallPattern:
     average_respondents_interviewed_per_hour: float
     refusals: str
     no_contacts: str
-    answer_service: str
-    busy: str
-    disconnect: str
-    no_answer: str
-    other: str
     completed_successfully: str
     appointments_for_contacts: str
+    no_contact_answer_service: str = "n/a"
+    no_contact_busy: str = "n/a"
+    no_contact_disconnect: str = "n/a"
+    no_contact_no_answer: str = "n/a"
+    no_contact_other: str = "n/a"
     discounted_invalid_cases: str = "0"
     invalid_fields: str = "n/a"
 

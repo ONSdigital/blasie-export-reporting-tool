@@ -109,14 +109,15 @@ def get_invalid_fields(data):
 def generate_report(call_history_dataframe, original_number_of_records, discounted_records=None, discounted_fields=None):
     hours_worked = get_hours_worked(call_history_dataframe)
     total_call_seconds = get_call_time_in_seconds(call_history_dataframe)
-    refusals_total, refusals_percentage = results_for_calls_with_status('no response', call_history_dataframe, original_number_of_records)
-    successful_total, successful_percentage = results_for_calls_with_status('questionnaire|completed', call_history_dataframe, original_number_of_records)
-    appointments_total, appointments_percentage = results_for_calls_with_status('appointment', call_history_dataframe, original_number_of_records)
-    no_contact_total, no_contact_percentage = results_for_calls_with_status('no contact', call_history_dataframe, original_number_of_records)
 
     if total_call_seconds > get_total_seconds_from_string(
             hours_worked):
         raise BertException(f"Hours worked ({hours_worked}) cannot be less than time spent on calls ({datetime.timedelta(seconds=total_call_seconds)}). Please review the Call History data", 400)
+
+    refusals_total, refusals_percentage = results_for_calls_with_status('status', 'no response', call_history_dataframe, original_number_of_records)
+    successful_total, successful_percentage = results_for_calls_with_status('status', 'questionnaire|completed', call_history_dataframe, original_number_of_records)
+    appointments_total, appointments_percentage = results_for_calls_with_status('status', 'appointment', call_history_dataframe, original_number_of_records)
+    no_contact_total, no_contact_percentage = results_for_calls_with_status('status', 'no contact', call_history_dataframe, original_number_of_records)
 
     report = InterviewerCallPattern(
         hours_worked=hours_worked,
@@ -127,14 +128,16 @@ def generate_report(call_history_dataframe, original_number_of_records, discount
         average_respondents_interviewed_per_hour=average_respondents_interviewed_per_hour(call_history_dataframe, hours_worked),
         refusals=f"{refusals_total}, {refusals_percentage}%",
         no_contacts=f"{no_contact_total}, {no_contact_percentage}%",
-        answer_service="yoo-hoo",
-        busy="yoo-hoo",
-        disconnect="yoo-hoo",
-        no_answer="yoo-hoo",
-        other="yoo-hoo",
         completed_successfully=f"{successful_total}, {successful_percentage}%",
         appointments_for_contacts=f"{appointments_total}, {appointments_percentage}%",
     )
+
+    no_contact_dataframe = call_history_dataframe[call_history_dataframe["status"].str.contains('no contact', case=False, na=False)]
+
+    if not no_contact_dataframe.empty:
+        answer_service_total, answer_service_percentage = results_for_calls_with_status('call_result', 'answer', no_contact_dataframe, len(no_contact_dataframe.index))
+
+        report.answer_service = f"{answer_service_total}, {answer_service_percentage}%"
 
     if discounted_records is not None:
         report.discounted_invalid_cases = f"{discounted_records[0]}, {discounted_records[1]}%"

@@ -2,7 +2,7 @@ import pytest
 
 from functions.interviewer_call_pattern_data_functions import (
     get_hours_worked, get_call_time_in_seconds, get_total_seconds_from_string,
-    convert_seconds_to_datetime_format, hours_on_calls, average_calls_per_hour, respondents_interviewed, no_contact_breakdown,
+    convert_seconds_to_datetime_format, hours_on_calls, average_calls_per_hour, respondents_interviewed,
     average_respondents_interviewed_per_hour, results_for_calls_with_status)
 from reports.interviewer_call_pattern_report import validate_dataframe
 
@@ -99,7 +99,7 @@ def test_get_average_respondents_interviewed_per_hour(hours_worked, expected, va
     ],
 )
 def test_get_results_for_calls_with_status_total(status, expected, status_dataframe):
-    assert results_for_calls_with_status(status, status_dataframe, 45)[0] == expected
+    assert results_for_calls_with_status('status', status, status_dataframe, 45)[0] == expected
 
 
 @pytest.mark.parametrize(
@@ -113,23 +113,30 @@ def test_get_results_for_calls_with_status_total(status, expected, status_datafr
     ],
 )
 def test_get_results_for_calls_with_status_percentage(status, expected, status_dataframe):
-    assert results_for_calls_with_status(status, status_dataframe, 45)[1] == expected
+    assert results_for_calls_with_status('status', status, status_dataframe, 45)[1] == expected
 
 
-def test_results_total_one_hundred_percent(dataframe_with_some_invalid_fields):
+def test_status_results_total_one_hundred_percent(dataframe_with_some_invalid_fields):
     denominator = len(dataframe_with_some_invalid_fields.index)
     validated_dataframe, discounted_records, foo = validate_dataframe(dataframe_with_some_invalid_fields)
 
-    a = results_for_calls_with_status('non response', validated_dataframe, denominator)[1]
-    b = results_for_calls_with_status('no contact', validated_dataframe, denominator)[1]
-    c = results_for_calls_with_status('questionnaire|completed', validated_dataframe, denominator)[1]
-    d = results_for_calls_with_status('appointment made', validated_dataframe, denominator)[1]
+    a = results_for_calls_with_status('status', 'non response', validated_dataframe, denominator)[1]
+    b = results_for_calls_with_status('status', 'no contact', validated_dataframe, denominator)[1]
+    c = results_for_calls_with_status('status', 'questionnaire|completed', validated_dataframe, denominator)[1]
+    d = results_for_calls_with_status('status', 'appointment made', validated_dataframe, denominator)[1]
 
     e = discounted_records[1]
 
     assert a + b + c + d + e == 100
 
 
-def test_no_contact_breakdown(status_dataframe):
-    x = no_contact_breakdown(status_dataframe)
-    print(x)
+def test_no_contact_results_total_one_hundred_percent(status_dataframe):
+    no_contact_dataframe = status_dataframe[status_dataframe["status"].str.contains('no contact', case=False, na=False)]
+    denominator = len(no_contact_dataframe.index)
+
+    a = results_for_calls_with_status('status', 'non response', no_contact_dataframe, denominator)[1]
+    b = results_for_calls_with_status('status', 'no contact', no_contact_dataframe, denominator)[1]
+    c = results_for_calls_with_status('status', 'questionnaire|completed', no_contact_dataframe, denominator)[1]
+    d = results_for_calls_with_status('status', 'appointment made', no_contact_dataframe, denominator)[1]
+
+    assert a + b + c + d == 100
