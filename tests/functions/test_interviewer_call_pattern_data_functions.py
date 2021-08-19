@@ -1,13 +1,11 @@
 import pytest
 
-import numpy as np
-import pandas as pd
-
 from functions.interviewer_call_pattern_data_functions import (
     get_hours_worked, get_call_time_in_seconds, get_total_seconds_from_string,
     convert_seconds_to_datetime_format, hours_on_calls, average_calls_per_hour, respondents_interviewed, no_contact_breakdown,
     average_respondents_interviewed_per_hour, results_for_calls_with_status)
 from reports.interviewer_call_pattern_report import validate_dataframe
+
 
 def test_get_hours_worked(valid_dataframe):
     assert get_hours_worked(valid_dataframe) == "0:48:05"
@@ -135,4 +133,3 @@ def test_results_total_one_hundred_percent(dataframe_with_some_invalid_fields):
 def test_no_contact_breakdown(status_dataframe):
     x = no_contact_breakdown(status_dataframe)
     print(x)
-
