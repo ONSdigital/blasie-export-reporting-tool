@@ -17,8 +17,9 @@ COLUMNS_TO_VALIDATE = ["call_start_time", "call_end_time", "number_of_interviews
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 
-def get_call_pattern_records_by_interviewer_and_date_range(interviewer_name, start_date_string,
-                                                           end_date_string, survey_tla):
+def get_call_pattern_records_by_interviewer_and_date_range(
+        interviewer_name, start_date_string, end_date_string, survey_tla):
+
     call_history_records = get_call_history_records(
         interviewer_name, start_date_string, end_date_string, survey_tla
     )
@@ -114,10 +115,7 @@ def generate_report(call_history_dataframe, original_number_of_records, discount
             hours_worked):
         raise BertException(f"Hours worked ({hours_worked}) cannot be less than time spent on calls ({datetime.timedelta(seconds=total_call_seconds)}). Please review the Call History data", 400)
 
-    refusals_total, refusals_percentage = results_for_calls_with_status('status', 'no response', call_history_dataframe, original_number_of_records)
-    successful_total, successful_percentage = results_for_calls_with_status('status', 'questionnaire|completed', call_history_dataframe, original_number_of_records)
-    appointments_total, appointments_percentage = results_for_calls_with_status('status', 'appointment', call_history_dataframe, original_number_of_records)
-    no_contact_total, no_contact_percentage = results_for_calls_with_status('status', 'no contact', call_history_dataframe, original_number_of_records)
+    results = handle_call_statuses(call_history_dataframe, original_number_of_records)
 
     report = InterviewerCallPattern(
         hours_worked=hours_worked,
@@ -126,21 +124,56 @@ def generate_report(call_history_dataframe, original_number_of_records, discount
         average_calls_per_hour=average_calls_per_hour(call_history_dataframe, hours_worked),
         respondents_interviewed=respondents_interviewed(call_history_dataframe),
         average_respondents_interviewed_per_hour=average_respondents_interviewed_per_hour(call_history_dataframe, hours_worked),
-        refusals=f"{refusals_total}, {refusals_percentage}%",
-        no_contacts=f"{no_contact_total}, {no_contact_percentage}%",
-        completed_successfully=f"{successful_total}, {successful_percentage}%",
-        appointments_for_contacts=f"{appointments_total}, {appointments_percentage}%",
+        refusals=results["no response"],
+        no_contacts=results["no contact"],
+        completed_successfully=results["questionnaire|completed"],
+        appointments_for_contacts=results["appointment"],
     )
 
     no_contact_dataframe = call_history_dataframe[call_history_dataframe["status"].str.contains('no contact', case=False, na=False)]
 
     if not no_contact_dataframe.empty:
-        answer_service_total, answer_service_percentage = results_for_calls_with_status('call_result', 'answer', no_contact_dataframe, len(no_contact_dataframe.index))
-
-        report.answer_service = f"{answer_service_total}, {answer_service_percentage}%"
+        report = handle_no_contacts_breakdown(no_contact_dataframe, report)
 
     if discounted_records is not None:
         report.discounted_invalid_cases = f"{discounted_records[0]}, {discounted_records[1]}%"
         report.invalid_fields = discounted_fields
 
     return report
+
+
+def handle_call_statuses(df, original_number_of_records):
+    statuses = ['no response', 'questionnaire|completed',
+                'appointment', 'no contact']
+    results = search_df_for_list_of_strings(df, original_number_of_records, 'status', statuses)
+
+    return results
+
+
+def handle_no_contacts_breakdown(df, report):
+    no_contact_dataframe = df[df["status"].str.contains('no contact', case=False, na=False)]
+
+    if no_contact_dataframe.empty:
+        return report
+
+    call_results = ['answer service', 'busy',
+                    'disconnect', 'no answer', 'others']
+    results = search_df_for_list_of_strings(no_contact_dataframe, len(no_contact_dataframe.index), 'call_result', call_results)
+
+    report.no_contact_answer_service = results['answer service']
+    report.no_contact_busy = results['busy']
+    report.no_contact_disconnect = results['disconnect']
+    report.no_contact_no_answer = results['no answer']
+    report.no_contact_other = results['others']
+
+    return report
+
+
+def search_df_for_list_of_strings(df, original_number_of_records, column_name, statuses):
+    results = {}
+
+    for status in statuses:
+        total, percentage = results_for_calls_with_status(column_name, status, df, original_number_of_records)
+        results[status] = f"{total}, {percentage}%"
+
+    return results
