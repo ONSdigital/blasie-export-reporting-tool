@@ -141,3 +141,15 @@ def test_generate_report_handles_unexpected_time_totals(unexpected_time_totals_d
         generate_report(unexpected_time_totals_dataframe, 1)
     assert err.value.message == "Hours worked (0:02:03) cannot be less than time spent on calls (1:53:20). Please review the Call History data"
     assert err.value.code == 400
+
+def test_handle_no_contacts_breakdown(interviewer_call_pattern_report):
+    df = pd.DataFrame(
+        {"status": ["no contact", "no contact", "no contact", "no contact", "no contact"],
+        "call_result": ["answer service", "busy", "disconnect", "no answer", "others"]},
+    )
+    report = handle_no_contacts_breakdown(df, interviewer_call_pattern_report)
+    assert report.no_contact_answer_service == '1/5, 20.0%'
+    assert report.no_contact_busy == '1/5, 20.0%'
+    assert report.no_contact_disconnect == '1/5, 20.0%'
+    assert report.no_contact_no_answer == '1/5, 20.0%'
+    assert report.no_contact_other == '1/5, 20.0%'
