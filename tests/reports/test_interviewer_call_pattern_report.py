@@ -10,10 +10,8 @@ from models.error_capture import BertException
 from reports.interviewer_call_pattern_report import (
     invalid_data_found, generate_report,
     get_call_pattern_records_by_interviewer_and_date_range,
-    get_invalid_fields, validate_dataframe
+    validate_dataframe, handle_no_contacts_breakdown
 )
-from functions.interviewer_call_pattern_data_functions import (
-    convert_seconds_to_datetime_format, hours_on_calls)
 
 
 def test_get_call_pattern_report_when_data_is_completely_invalid(call_history_records, mocker):
@@ -141,3 +139,28 @@ def test_generate_report_handles_unexpected_time_totals(unexpected_time_totals_d
         generate_report(unexpected_time_totals_dataframe, 1)
     assert err.value.message == "Hours worked (0:02:03) cannot be less than time spent on calls (1:53:20). Please review the Call History data"
     assert err.value.code == 400
+
+def test_handle_no_contacts_breakdown(interviewer_call_pattern_report):
+    df = pd.DataFrame(
+        {"status": ["no contact", "no contact", "no contact", "no contact", "no contact"],
+        "call_result": ["answer service", "busy", "disconnect", "no answer", "others"]},
+    )
+    report = handle_no_contacts_breakdown(df, interviewer_call_pattern_report)
+    assert report == InterviewerCallPattern(
+        hours_worked='7:24:00',
+        call_time='0:00:00',
+        hours_on_calls='0%',
+        average_calls_per_hour=3.14,
+        respondents_interviewed=5,
+        average_respondents_interviewed_per_hour=123,
+        refusals='foobar',
+        no_contacts='foobar',
+        completed_successfully='',
+        appointments_for_contacts='101%',
+        no_contact_answer_service='1/5, 20.0%',
+        no_contact_busy='1/5, 20.0%',
+        no_contact_disconnect='1/5, 20.0%',
+        no_contact_no_answer='1/5, 20.0%',
+        no_contact_other='1/5, 20.0%',
+        discounted_invalid_cases='0',
+        invalid_fields='n/a')

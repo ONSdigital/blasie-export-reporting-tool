@@ -120,23 +120,24 @@ def test_status_results_total_one_hundred_percent(dataframe_with_some_invalid_fi
     denominator = len(dataframe_with_some_invalid_fields.index)
     validated_dataframe, discounted_records, foo = validate_dataframe(dataframe_with_some_invalid_fields)
 
-    a = results_for_calls_with_status('status', 'non response', validated_dataframe, denominator)[1]
-    b = results_for_calls_with_status('status', 'no contact', validated_dataframe, denominator)[1]
-    c = results_for_calls_with_status('status', 'questionnaire|completed', validated_dataframe, denominator)[1]
-    d = results_for_calls_with_status('status', 'appointment made', validated_dataframe, denominator)[1]
+    non_response = results_for_calls_with_status('status', 'non response', validated_dataframe, denominator)[1]
+    no_contact = results_for_calls_with_status('status', 'no contact', validated_dataframe, denominator)[1]
+    questionnaire_completed = results_for_calls_with_status('status', 'questionnaire|completed', validated_dataframe, denominator)[1]
+    appointment_made = results_for_calls_with_status('status', 'appointment made', validated_dataframe, denominator)[1]
 
-    e = discounted_records[1]
+    discounted = discounted_records[1]
 
-    assert a + b + c + d + e == 100
+    assert non_response + no_contact + questionnaire_completed + appointment_made + discounted == pytest.approx(100)
 
 
 def test_no_contact_results_total_one_hundred_percent(status_dataframe):
     no_contact_dataframe = status_dataframe[status_dataframe["status"].str.contains('no contact', case=False, na=False)]
     denominator = len(no_contact_dataframe.index)
 
-    a = results_for_calls_with_status('status', 'non response', no_contact_dataframe, denominator)[1]
-    b = results_for_calls_with_status('status', 'no contact', no_contact_dataframe, denominator)[1]
-    c = results_for_calls_with_status('status', 'questionnaire|completed', no_contact_dataframe, denominator)[1]
-    d = results_for_calls_with_status('status', 'appointment made', no_contact_dataframe, denominator)[1]
+    answerservice = results_for_calls_with_status('call_result', 'answerservice', no_contact_dataframe, denominator)[1]
+    busy = results_for_calls_with_status('call_result', 'busy', no_contact_dataframe, denominator)[1]
+    disconnect = results_for_calls_with_status('call_result', 'disconnect', no_contact_dataframe, denominator)[1]
+    noanswer = results_for_calls_with_status('call_result', 'noanswer', no_contact_dataframe, denominator)[1]
+    other = results_for_calls_with_status('call_result', 'other', no_contact_dataframe, denominator)[1]
 
-    assert a + b + c + d == 100
+    assert answerservice + busy + disconnect + noanswer + other == pytest.approx(100)
