@@ -37,14 +37,14 @@ def call_time_is_less_than_hours_worked(data):
 def handle_invalid_data(data):
     valid_dataframe = create_valid_dataframe(data)
 
-    invalid_records = data[~data.index.isin(valid_dataframe.index)]
+    invalid_dataframe = data[~data.index.isin(valid_dataframe.index)]
     valid_dataframe.reset_index(drop=True, inplace=True)
-    invalid_records.reset_index(drop=True, inplace=True)
+    invalid_dataframe.reset_index(drop=True, inplace=True)
 
     if call_time_is_less_than_hours_worked(valid_dataframe):
         raise BertException(f"Hours worked ({get_hours_worked(valid_dataframe)}) cannot be less than time spent on calls ({datetime.timedelta(seconds=get_call_time_in_seconds(valid_dataframe))}). Please review the Call History data", 400)
 
-    return valid_dataframe, invalid_records
+    return valid_dataframe, invalid_dataframe
 
 
 def create_valid_dataframe(data):
