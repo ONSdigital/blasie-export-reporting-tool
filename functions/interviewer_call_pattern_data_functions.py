@@ -92,3 +92,65 @@ def results_for_calls_with_status(column_name, status, valid_df, denominator):
     except Exception as err:
         raise BertException(f"Could not calculate the total for status containing '{status}': {err}", 400)
     return f"{numerator}/{denominator}", round(percentage, 2)
+
+
+def convert_seconds_to_datetime_format(seconds):
+    try:
+        result = str(datetime.timedelta(seconds=seconds))
+    except Exception as err:
+        raise BertException(f"Could not convert_call_time_seconds_to_datetime_format(): {err}", 400)
+    return result
+
+
+def get_total_seconds_from_string(hours_worked):
+    try:
+        h, m, s = hours_worked.split(':')
+        result = int(h) * 3600 + int(m) * 60 + int(s)
+    except Exception as err:
+        raise BertException(f"Could not calculate get_total_seconds_from_string(): {err}", 400)
+    return result
+
+
+def get_call_statuses(df, original_number_of_records):
+    statuses = ['non response', 'questionnaire|completed',
+                'appointment', 'no contact']
+    results = search_df_for_list_of_strings(df, original_number_of_records, 'status', statuses)
+
+    return results
+
+
+def get_no_contacts_breakdown(report, df):
+    no_contact_dataframe = df[df["status"].str.contains('no contact', case=False, na=False)]
+
+    if no_contact_dataframe.empty:
+        return report
+
+    no_contact_dataframe.reset_index(drop=True, inplace=True)
+
+    call_results = ['answerservice', 'busy',
+                    'disconnect', 'noanswer', 'others']
+    results = search_df_for_list_of_strings(no_contact_dataframe, len(no_contact_dataframe.index), 'call_result', call_results)
+
+    report.no_contact_answer_service = results['answerservice']
+    report.no_contact_busy = results['busy']
+    report.no_contact_disconnect = results['disconnect']
+    report.no_contact_no_answer = results['noanswer']
+    report.no_contact_other = results['others']
+
+    return report
+
+
+def search_df_for_list_of_strings(df, original_number_of_records, column_name, statuses):
+    results = {}
+
+    for status in statuses:
+        total, percentage = results_for_calls_with_status(column_name, status, df, original_number_of_records)
+        results[status] = f"{total}, {percentage}%"
+
+    return results
+
+
+def get_call_statuses(df, original_number_of_records):
+    statuses = ['non response', 'questionnaire|completed',
+                'appointment', 'no contact']
+    return search_df_for_list_of_strings(df, original_number_of_records, 'status', statuses)
