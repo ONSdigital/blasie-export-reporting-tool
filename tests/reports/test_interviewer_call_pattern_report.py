@@ -8,9 +8,8 @@ from pandas.testing import assert_frame_equal
 from models.interviewer_call_pattern_model import InterviewerCallPattern, InterviewerCallPatternWithNoValidData
 from models.error_capture import BertException
 from reports.interviewer_call_pattern_report import (
-    invalid_data_found, generate_report,
-    get_call_pattern_records_by_interviewer_and_date_range,
-    get_invalid_fields, validate_dataframe
+    generate_report, create_and_parse_call_history_dataframe,
+    get_call_pattern_report, generate_invalid_report, get_discounted_records
 )
 from functions.interviewer_call_pattern_data_functions import (
     convert_seconds_to_datetime_format, hours_on_calls)
