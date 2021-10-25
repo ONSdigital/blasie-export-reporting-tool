@@ -68,7 +68,7 @@ def get_call_pattern_report(
 
 
 def get_webnudge(records):
-    results = records.loc[(records["status"] == 'Questionnaire') & (records["call_result"] == 'null')]
+    results = records.loc[(records["status"] == 'Questionnaire') & (records["call_result"] == None)]
     return str(format_fraction_and_percentage_as_string(len(results), len(records)))
 
 
@@ -215,6 +215,11 @@ def percentage_of_no_contact_records_with_call_result(records: pd.DataFrame, cal
     )
 
 
+def identify_web_nudge_records(records):
+    records.loc[(records["status"] == 'Questionnaire') & (records["call_result"] == 'null'), 'call_end_time'] = "WebNudge"
+    return records
+
+
 def percentage_of_invalid_records(records: pd.DataFrame) -> str:
     """Calculate the number of invalid records and return the value in a fraction, percentage format.
 
@@ -227,6 +232,7 @@ def percentage_of_invalid_records(records: pd.DataFrame) -> str:
     Returns:
         The number of invalid records found in a fraction, percentage format (i.e. 2/4, 50%).
     """
+    records = identify_web_nudge_records(records)
     valid_records = get_valid_records(records)
 
     if len(valid_records) == len(records):

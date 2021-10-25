@@ -25,3 +25,11 @@ def get_call_history_records(interviewer_name, start_date_string, end_date_strin
     results = list(query.fetch())
     print(f"get_call_history_records_by_interviewer_and_date_range - {len(results)} records found")
     return results
+
+
+# if __name__ == '__main__':
+#     import pandas as pd
+#     result = get_call_history_records('rich', '2021-09-06', '2021-10-25', survey_tla='OPN')
+#     df = pd.DataFrame(result)
+#     print(df)
+
