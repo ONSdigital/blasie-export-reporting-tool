@@ -12,7 +12,7 @@ class InterviewerCallPattern:
     no_contacts: str
     completed_successfully: str
     appointments_for_contacts: str
-    web_nudge: str
+    web_nudge: str = "foo"
     no_contact_answer_service: str = "n/a"
     no_contact_busy: str = "n/a"
     no_contact_disconnect: str = "n/a"
