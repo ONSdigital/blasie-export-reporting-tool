@@ -68,7 +68,7 @@ def get_call_pattern_report(
 
 
 def get_webnudge(records):
-    results = records.loc[(records["status"] == 'Questionnaire') & (records["call_result"] == None)]
+    results = records.loc[(records["status"] == 'Questionnaire') & (records["call_result"].isnull())]
     return str(format_fraction_and_percentage_as_string(len(results), len(records)))
 
 

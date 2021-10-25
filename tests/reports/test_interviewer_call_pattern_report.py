@@ -18,13 +18,13 @@ def test_webnudge_works(mocker):
             call_start_time=datetime_helper(day=7, hour=10),
             call_end_time=datetime_helper(day=7, hour=11),
             status="Questionnaire",
-            call_result="null"
+            call_result=None
         ),
         interviewer_call_pattern_report_sample_case(
             call_start_time=datetime_helper(day=7, hour=10),
             call_end_time=datetime_helper(day=7, hour=11),
             status="Questionnaire",
-            call_result="null"
+            call_result=None
         ),
     ]
 
