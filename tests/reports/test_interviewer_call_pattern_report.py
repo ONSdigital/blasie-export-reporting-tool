@@ -12,6 +12,30 @@ end_date_as_string = "2021-09-22"
 survey_tla = "OPN"
 
 
+def test_webnudge_works(mocker):
+    datastore_records = [
+        interviewer_call_pattern_report_sample_case(
+            call_start_time=datetime_helper(day=7, hour=10),
+            call_end_time=datetime_helper(day=7, hour=11),
+            status="Questionnaire",
+            call_result="null"
+        ),
+        interviewer_call_pattern_report_sample_case(
+            call_start_time=datetime_helper(day=7, hour=10),
+            call_end_time=datetime_helper(day=7, hour=11),
+            status="Questionnaire",
+            call_result="null"
+        ),
+    ]
+
+    mocker.patch(
+        "reports.interviewer_call_pattern_report.get_call_history_records",
+        return_value=pd.DataFrame(datastore_records))
+
+    result = get_call_pattern_report(interviewer, start_date_as_string, end_date_as_string, survey_tla)
+    assert result.web_nudge == '2/2, 100.00%'
+
+
 def test_get_call_pattern_report_returns_an_empty_dict_if_no_records_were_found(mocker):
     mocker.patch(
         "reports.interviewer_call_pattern_report.get_call_history_records",

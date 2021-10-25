@@ -56,6 +56,7 @@ def get_call_pattern_report(
         no_contacts=percentage_of_records_with_status(records, "Finished (No contact)"),
         completed_successfully=percentage_of_records_with_status(records, "Completed"),
         appointments_for_contacts=percentage_of_records_with_status(records, "Finished (Appointment made)"),
+        web_nudge=get_webnudge(records),
         no_contact_answer_service=percentage_of_no_contact_records_with_call_result(records, "AnswerService"),
         no_contact_busy=percentage_of_no_contact_records_with_call_result(records, "Busy"),
         no_contact_disconnect=percentage_of_no_contact_records_with_call_result(records, "Disconnect"),
@@ -64,6 +65,11 @@ def get_call_pattern_report(
         discounted_invalid_cases=percentage_of_invalid_records(records),
         invalid_fields=",".join(provide_reasons_for_invalid_records(records))
     )
+
+
+def get_webnudge(records):
+    results = records.loc[(records["status"] == 'Questionnaire') & (records["call_result"] == 'null')]
+    return str(format_fraction_and_percentage_as_string(len(results), len(records)))
 
 
 def get_call_history_records(
