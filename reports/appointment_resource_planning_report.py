@@ -24,4 +24,5 @@ def get_appointment_resource_planning_by_date(date):
         else:
             cati_appointment_resource_planning.questionnaire_name = questionnaire_name
         cati_appointment_resource_planning_list.append(cati_appointment_resource_planning)
+    print(f"Appointments found: {cati_appointment_resource_planning_list}")
     return cati_appointment_resource_planning_list
