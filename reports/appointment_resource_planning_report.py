@@ -11,6 +11,8 @@ def get_appointment_resource_planning_by_date(date):
     config.log()
     installed_questionnaire_list = get_list_of_installed_questionnaires(config)
     results = get_cati_appointment_resource_planning_from_database(config, date)
+    # TODO: v
+    print(f"Results from CATI database: {results}")
     cati_appointment_resource_planning_list = []
     for item in results:
         cati_appointment_resource_planning = AppointmentResourcePlanning(
@@ -24,5 +26,6 @@ def get_appointment_resource_planning_by_date(date):
         else:
             cati_appointment_resource_planning.questionnaire_name = questionnaire_name
         cati_appointment_resource_planning_list.append(cati_appointment_resource_planning)
+    # TODO: v
     print(f"Appointments found: {cati_appointment_resource_planning_list}")
     return cati_appointment_resource_planning_list
