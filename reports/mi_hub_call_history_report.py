@@ -3,30 +3,26 @@ from unittest import mock
 from data_sources.cati_data import get_cati_mi_hub_call_history_from_database
 from data_sources.call_history_data import CallHistoryClient
 from data_sources.questionnaire_data import (
-    get_list_of_installed_questionnaires,
     get_questionnaire_data,
-    get_questionnaire_name_from_id,
 )
 from models.mi_hub_call_history_model import MiHubCallHistory
 
 
-def get_mi_hub_call_history(config):
+def get_mi_hub_call_history(config, questionnaire_name, questionnaire_id):
     print("Getting data for the MI hub call history report")
-    installed_questionnaire_list = get_list_of_installed_questionnaires(config)
-    mi_hub_cati_call_history = get_cati_mi_hub_call_history(
-        config, installed_questionnaire_list
-    )
+    mi_hub_cati_call_history = get_cati_mi_hub_call_history(config, questionnaire_name, questionnaire_id)
+
     questionnaire_fields_to_get = [
         "QID.Serial_Number",
         "QHAdmin.HOut",
     ]
+
     questionnaire_data = []
-    for questionnaire in installed_questionnaire_list:
-        questionnaire_data.extend(
-            get_questionnaire_data(
-                questionnaire.get("name"), config, questionnaire_fields_to_get
-            )
-        )
+
+    questionnaire_data.extend(get_questionnaire_data(
+        questionnaire_name, config, questionnaire_fields_to_get)
+    )
+ 
     print(f"Found {len(questionnaire_data)} questionnaire records")
     call_history_client = CallHistoryClient(mock.MagicMock, config)
     mi_hub_cati_call_history_and_questionnaire_data_merged = (
@@ -39,13 +35,12 @@ def get_mi_hub_call_history(config):
     )
 
 
-def get_cati_mi_hub_call_history(config, questionnaire_list):
+def get_cati_mi_hub_call_history(config, questionnaire_name, questionnaire_id):
     results = get_cati_mi_hub_call_history_from_database(config)
+    print(results)
     cati_mi_hub_call_history_list = []
     for item in results:
-        if not check_if_questionnaire_id_is_in_questionnaire_list(
-            item.get("InstrumentId"), questionnaire_list
-        ):
+        if not item.get("InstrumentId") == questionnaire_id:
             continue
         cati_mi_hub_call_history = MiHubCallHistory(
             questionnaire_id=item.get("InstrumentId"),
@@ -60,11 +55,7 @@ def get_cati_mi_hub_call_history(config, questionnaire_list):
         cati_mi_hub_call_history.generate_dial_date_and_time_fields(
             item.get("StartTime"), item.get("EndTime")
         )
-        questionnaire_name = get_questionnaire_name_from_id(
-            cati_mi_hub_call_history.questionnaire_id, questionnaire_list
-        )
-        if questionnaire_name != "":
-            cati_mi_hub_call_history.questionnaire_name = questionnaire_name
+        cati_mi_hub_call_history.questionnaire_name = questionnaire_name
         cati_mi_hub_call_history_list.append(cati_mi_hub_call_history)
     print(f"Found {len(results)} mi hub call history records in the CATI database")
     return cati_mi_hub_call_history_list
