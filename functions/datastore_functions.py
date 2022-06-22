@@ -43,7 +43,7 @@ def get_datastore_records_for_questionnaire(client, interviewer_name, start_date
         query.add_filter("survey", "=", survey_tla)
 
     if questionnaire is not None:
-        print(f"Filtering call history data by instrument '{questionnaire}'")
+        print(f"Filtering call history data by questionnaire '{questionnaire}'")
         query.add_filter("questionnaire_name", "=", questionnaire)
 
     records = list(query.fetch())
