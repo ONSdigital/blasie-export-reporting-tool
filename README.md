@@ -175,7 +175,19 @@ poetry run python -c "import flask; from main import deliver_mi_hub_reports_proc
 
 Run Tests
 
-You will need the Google Cloud Datastore Emulator to run the full test suite (including Datastore integration tests)
+You will need the Google Cloud Datastore Emulator to run the full test suite (including Datastore integration tests), and Java installed:
+
+```shell
+brew install openjdk
+```
+
+Update the PATH
+
+```shell
+echo 'export PATH="/usr/local/opt/openjdk/bin:$PATH"' >> ~/.profile
+```
+
+Close your terminal for the changes to take effect and run the following (keep closing and re-opening a new browser until it works)
 
 ```shell
 make start-datastore-emulator
