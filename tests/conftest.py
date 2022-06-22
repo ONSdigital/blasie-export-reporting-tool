@@ -129,8 +129,8 @@ def questionnaire_fields_to_get():
 @pytest.fixture
 def api_reporting_data_response():
     return {
-        "instrumentName": "DST2106Z",
-        "instrumentId": "12345-12345-12345-12345-12345",
+        "questionnaireName": "DST2106Z",
+        "questionnaireId": "12345-12345-12345-12345-12345",
         "reportingData": [
             {
                 "qiD.Serial_Number": "10010",
