@@ -368,10 +368,10 @@ def test_get_datastore_records_returns_expected_result_when_called_with_calls_ou
 
 
 @patch("functions.datastore_functions.get_datastore_records")
-def test_get_call_history_instruments_returns_a_list_of_unique_questionnaires(mock_get_datastore_records,
-                                                                              interviewer_name,
-                                                                              start_date_as_string, end_date_as_string,
-                                                                              arbitrary_outcome_code):
+def test_get_call_history_questionnaires_returns_a_list_of_unique_questionnaires(mock_get_datastore_records,
+                                                                                 interviewer_name,
+                                                                                 start_date_as_string, end_date_as_string,
+                                                                                 arbitrary_outcome_code):
     mock_datastore_entity = [
         entity_builder(
             1, interviewer_name, start_date_as_string, end_date_as_string, arbitrary_outcome_code, "Completed",
