@@ -63,7 +63,7 @@ def deliver_mi_hub_reports_trigger(_event, _context):
         task_client.create_task(request)
 
 
-def populate_call_history_file(config, questionnaire_name, questionnaire_id, zip_data):
+def __populate_call_history_file(config, questionnaire_name, questionnaire_id, zip_data):
     mi_hub_call_history = get_mi_hub_call_history(
         config, questionnaire_name, questionnaire_id
     )
@@ -76,7 +76,7 @@ def populate_call_history_file(config, questionnaire_name, questionnaire_id, zip
     return zip_data
 
 
-def populate_respondent_file(config, questionnaire_name, zip_data):
+def __populate_respondent_file(config, questionnaire_name, zip_data):
     mi_hub_respondent_data = get_mi_hub_respondent_data(
         config, questionnaire_name
     )
@@ -89,7 +89,7 @@ def populate_respondent_file(config, questionnaire_name, zip_data):
     return zip_data
 
 
-def upload_mi_to_bucket(questionnaire_name, google_storage, zipped_mi_data):
+def __upload_mi_to_bucket(questionnaire_name, google_storage, zipped_mi_data):
     datetime_string = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
     mi_filename = f"mi_{questionnaire_name}_{datetime_string}"
 
@@ -110,22 +110,22 @@ def deliver_mi_hub_reports_processor(request):
 
     request_json = request.get_json()
     if request_json is None:
-        raise Exception("Function was not triggered due to an valid request")
+        return "Function was not triggered due to an valid request", 500
 
     questionnaire_name = request_json["name"]
     questionnaire_id = request_json["id"]
 
     zip_data = []
-    zip_data = populate_call_history_file(config, questionnaire_name, questionnaire_id, zip_data)
-    zip_data = populate_respondent_file(config, questionnaire_name, zip_data)
+    zip_data = __populate_call_history_file(config, questionnaire_name, questionnaire_id, zip_data)
+    zip_data = __populate_respondent_file(config, questionnaire_name, zip_data)
 
     if not zip_data:
-        return f"No data for {questionnaire_name}"
+        return f"No data for {questionnaire_name}", 500
 
     zipped_mi_data = create_zip(zip_data)
-    upload_mi_to_bucket(questionnaire_name, google_storage, zipped_mi_data)
+    __upload_mi_to_bucket(questionnaire_name, google_storage, zipped_mi_data)
 
-    return f"Done - {questionnaire_name}"
+    return f"Done - {questionnaire_name}", 200
 
 
 if os.path.isfile("./.env"):
