@@ -63,16 +63,7 @@ def deliver_mi_hub_reports_trigger(_event, _context):
         task_client.create_task(request)
 
 
-def deliver_mi_hub_reports_processor(request):
-    print("Running Cloud Function - deliver_mi_hub_reports_processor")
-    config = Config.from_env()
-    config.log()
-    request_json = request.get_json()
-    if request_json is None:
-        raise Exception("Function was not triggered due to an valid request")
-    questionnaire_name = request_json["name"]
-    questionnaire_id = request_json["id"]
-    zip_data = []
+def populate_call_history_file(config, questionnaire_name, questionnaire_id, zip_data):
     mi_hub_call_history = get_mi_hub_call_history(
         config, questionnaire_name, questionnaire_id
     )
@@ -81,24 +72,59 @@ def deliver_mi_hub_reports_processor(request):
         zip_data.append({"filename": "call_history.csv", "content": call_history_csv})
     else:
         print(f"No call history for {questionnaire_name}")
-    mi_hub_respondent_data = get_mi_hub_respondent_data(config, questionnaire_name)
+
+    return zip_data
+
+
+def populate_respondent_file(config, questionnaire_name, zip_data):
+    mi_hub_respondent_data = get_mi_hub_respondent_data(
+        config, questionnaire_name
+    )
     if mi_hub_respondent_data:
         respondent_data_csv = write_csv(mi_hub_respondent_data)
-        zip_data.append(
-            {"filename": "respondent_data.csv", "content": respondent_data_csv}
-        )
+        zip_data.append({"filename": "respondent_data.csv", "content": respondent_data_csv})
     else:
         print(f"No respondent data for {questionnaire_name}")
-    if zip_data:
-        zipped_data = create_zip(zip_data)
-        datetime_string = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
-        mi_filename = f"mi_{questionnaire_name}_{datetime_string}"
-        google_storage = init_google_storage(config)
-        if google_storage.bucket is None:
-            return "Connection to storage bucket failed", 500
-        google_storage.upload_zip(f"{mi_filename}.zip", zipped_data)
-    else:
-        print(f"No data for {questionnaire_name}")
+
+    return zip_data
+
+
+def upload_mi_to_bucket(questionnaire_name, google_storage, zipped_mi_data):
+    datetime_string = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+    mi_filename = f"mi_{questionnaire_name}_{datetime_string}"
+
+    try:
+        google_storage.upload_zip(f"{mi_filename}.zip", zipped_mi_data)
+    except Exception as err:
+        raise Exception(f"Failed to upload MI reports to bucket: {err}")
+
+
+def deliver_mi_hub_reports_processor(request):
+    print("Running Cloud Function - deliver_mi_hub_reports_processor")
+    config = Config.from_env()
+    config.log()
+
+    google_storage = init_google_storage(config)
+    if google_storage.bucket is None:
+        return "Connection to storage bucket failed", 500
+
+    request_json = request.get_json()
+    if request_json is None:
+        raise Exception("Function was not triggered due to an valid request")
+
+    questionnaire_name = request_json["name"]
+    questionnaire_id = request_json["id"]
+
+    zip_data = []
+    zip_data = populate_call_history_file(config, questionnaire_name, questionnaire_id, zip_data)
+    zip_data = populate_respondent_file(config, questionnaire_name, zip_data)
+
+    if not zip_data:
+        return f"No data for {questionnaire_name}"
+
+    zipped_mi_data = create_zip(zip_data)
+    upload_mi_to_bucket(questionnaire_name, google_storage, zipped_mi_data)
+
     return f"Done - {questionnaire_name}"
 
 
