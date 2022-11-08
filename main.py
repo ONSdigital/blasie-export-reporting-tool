@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import uuid
@@ -9,12 +8,8 @@ from google.cloud import datastore, tasks_v2
 from app.app import app, load_config, setup_app
 from data_sources.call_history_data import CallHistoryClient
 from data_sources.questionnaire_data import get_list_of_installed_questionnaires
-from functions.csv_functions import write_csv
-from functions.google_storage_functions import init_google_storage
-from functions.zip_functions import create_zip
 from models.config_model import Config
-from reports.mi_hub_call_history_report import get_mi_hub_call_history
-from reports.mi_hub_respondent_data_report import get_mi_hub_respondent_data
+from services.deliver_mi_hub_reports import DeliverMIHubReportsService
 
 
 def delete_old_call_history(_event, _context):
@@ -63,58 +58,18 @@ def deliver_mi_hub_reports_trigger(_event, _context):
         task_client.create_task(request)
 
 
-def add_call_history_csv(config, questionnaire_name, questionnaire_id, files):
-    mi_hub_call_history = get_mi_hub_call_history(config, questionnaire_name, questionnaire_id)
-    if mi_hub_call_history:
-        call_history_csv = write_csv(mi_hub_call_history)
-        return files.append({"filename": "call_history.csv", "content": call_history_csv})
-
-    print(f"No call history for {questionnaire_name}")
-    return []
-
-
-def add_respondent_data_csv(config, questionnaire_name, files):
-    mi_hub_respondent_data = get_mi_hub_respondent_data(config, questionnaire_name)
-    if mi_hub_respondent_data:
-        respondent_data_csv = write_csv(mi_hub_respondent_data)
-        return files.append({"filename": "respondent_data.csv", "content": respondent_data_csv})
-
-    print(f"No respondent data for {questionnaire_name}")
-    return []
-
-
-def upload_data_to_gcp_bucket(files, questionnaire_name, config):
-    google_storage = init_google_storage(config)
-    if google_storage.bucket is None:
-        raise Exception("Connection to storage bucket failed", 500)
-
-    zipped_data = create_zip(files)
-    datetime_string = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
-    google_storage.upload_zip(f"mi_{questionnaire_name}_{datetime_string}.zip", zipped_data)
-
-
 def deliver_mi_hub_reports_processor(request):
+    print("Running Cloud Function - deliver_mi_hub_reports_processor")
+
     request_json = request.get_json()
     if request_json is None:
         raise Exception("deliver_mi_hub_reports_processor was not triggered due to an invalid request")
 
-    print("Running Cloud Function - deliver_mi_hub_reports_processor")
-
-    config = Config.from_env()
-    config.log()
-
-    questionnaire_name = request_json["name"]
-    questionnaire_id = request_json["id"]
-
-    files = []
-    files = add_call_history_csv(config, questionnaire_name, questionnaire_id, files)
-    files = add_respondent_data_csv(config, questionnaire_name, files)
-
-    if not files:
-        return f"No eligible mi data for {questionnaire_name}. deliver_mi_hub_reports_processor complete"
-
-    upload_data_to_gcp_bucket(files, questionnaire_name, config)
-    return f"Eligible data found and uploaded for {questionnaire_name}. deliver_mi_hub_reports_processor complete"
+    deliver_mi_hub_reports_service = DeliverMIHubReportsService(
+        config=Config.from_env(),
+        request_json=request_json
+    )
+    return deliver_mi_hub_reports_service.deliver_mi_hub_reports()
 
 
 if os.path.isfile("./.env"):
