@@ -65,8 +65,11 @@ def deliver_mi_hub_reports_processor(request):
     if request_json is None:
         raise Exception("deliver_mi_hub_reports_processor was not triggered due to an invalid request")
 
+    config = Config.from_env()
+    config.log()
+
     deliver_mi_hub_reports_service = DeliverMIHubReportsService(
-        config=Config.from_env(),
+        config=config,
         request_json=request_json
     )
     return deliver_mi_hub_reports_service.deliver_mi_hub_reports()

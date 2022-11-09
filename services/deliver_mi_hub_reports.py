@@ -10,7 +10,6 @@ from functions.zip_functions import create_zip
 class DeliverMIHubReportsService:
     def __init__(self, config, request_json):
         self._config = config
-        self._config.log()
 
         self._google_storage = init_google_storage(self._config)
 
@@ -19,7 +18,6 @@ class DeliverMIHubReportsService:
 
         self._mi_hub_call_history = get_mi_hub_call_history(
             self._config, self._questionnaire_name, self._questionnaire_id)
-
         self._mi_hub_respondent_data = get_mi_hub_respondent_data(
             self._config, self._questionnaire_name)
 
