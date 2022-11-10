@@ -2,7 +2,7 @@ import logging
 
 import flask
 
-from services.google_storage_service import init_google_storage
+from services.google_storage_service import GoogleStorage
 from models.config_model import Config
 from reports.mi_hub_call_history_report import get_mi_hub_call_history
 from reports.mi_hub_respondent_data_report import get_mi_hub_respondent_data
@@ -21,7 +21,7 @@ def deliver_mi_hub_reports_cloud_function_processor(
             "deliver_mi_hub_reports_cloud_function_processor was not triggered due to an invalid request"
         )
 
-    google_storage = init_google_storage(config)
+    google_storage = GoogleStorage(config.nifi_staging_bucket)
     if google_storage.bucket is None:
         logging.error(
             f"Connection to storage bucket {config.nifi_staging_bucket} failed"
