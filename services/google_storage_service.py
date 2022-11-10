@@ -9,15 +9,12 @@ class GoogleStorage:
     def __init__(self, nifi_staging_bucket):
         self.nifi_staging_bucket = nifi_staging_bucket
         self.bucket = None
-        self.storage_client = None
-
         self.initialise_bucket_connection()
 
     def initialise_bucket_connection(self):
         try:
             print(f"Connecting to bucket - {self.nifi_staging_bucket}")
             storage_client = storage.Client()
-            self.storage_client = storage_client
             self.bucket = storage_client.get_bucket(self.nifi_staging_bucket)
             print(f"Connected to bucket - {self.nifi_staging_bucket}")
         except Exception as ex:
