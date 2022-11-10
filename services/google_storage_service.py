@@ -1,3 +1,5 @@
+import logging
+
 from google.cloud import storage  # type: ignore
 
 # workaround to prevent file transfer timeouts
@@ -13,21 +15,15 @@ class GoogleStorage:
 
     def initialise_bucket_connection(self):
         try:
-            print(f"Connecting to bucket - {self.nifi_staging_bucket}")
+            logging.info(f"Connecting to bucket - {self.nifi_staging_bucket}")
             storage_client = storage.Client()
             self.bucket = storage_client.get_bucket(self.nifi_staging_bucket)
-            print(f"Connected to bucket - {self.nifi_staging_bucket}")
+            logging.info(f"Connected to bucket - {self.nifi_staging_bucket}")
         except Exception as ex:
-            print("Connection to bucket failed - %s", ex)
+            raise Exception(f"Connection to bucket {self.nifi_staging_bucket} failed: {ex}")
 
-    def upload_file(self, source, dest):
-        blob_destination = self.bucket.blob(dest)
-        print(f"Uploading file to storage bucket - {source}")
-        blob_destination.upload_from_filename(source)
-        print(f"Uploaded file to storage bucket - {source}")
-
-    def upload_zip(self, dest, data):
-        blob_destination = self.bucket.blob(dest)
-        print(f"Uploading file to storage bucket - {dest}")
+    def upload_zip(self, filename, data):
+        logging.info(f"Uploading {filename} to storage bucket")
+        blob_destination = self.bucket.blob(filename)
         blob_destination.upload_from_string(data, content_type="application/zip")
-        print(f"Uploaded file to storage bucket - {dest}")
+        logging.info(f"Uploaded {filename} to storage bucket")
