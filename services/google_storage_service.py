@@ -6,9 +6,8 @@ storage.blob._MAX_MULTIPART_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
 class GoogleStorage:
-    def __init__(self, nifi_staging_bucket, log):
+    def __init__(self, nifi_staging_bucket):
         self.nifi_staging_bucket = nifi_staging_bucket
-        self.log = log
         self.bucket = None
         self.storage_client = None
 
