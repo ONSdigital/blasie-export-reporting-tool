@@ -12,6 +12,8 @@ class GoogleStorage:
         self.bucket = None
         self.storage_client = None
 
+        self.initialise_bucket_connection()
+
     def initialise_bucket_connection(self):
         try:
             print(f"Connecting to bucket - {self.nifi_staging_bucket}")
@@ -33,9 +35,3 @@ class GoogleStorage:
         print(f"Uploading file to storage bucket - {dest}")
         blob_destination.upload_from_string(data, content_type="application/zip")
         print(f"Uploaded file to storage bucket - {dest}")
-
-
-def init_google_storage(config):
-    google_storage = GoogleStorage(config.nifi_staging_bucket, None)
-    google_storage.initialise_bucket_connection()
-    return google_storage

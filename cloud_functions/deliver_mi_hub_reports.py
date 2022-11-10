@@ -2,7 +2,7 @@ import logging
 
 import flask
 
-from functions.google_storage_functions import init_google_storage
+from services.google_storage_service import init_google_storage
 from models.config_model import Config
 from reports.mi_hub_call_history_report import get_mi_hub_call_history
 from reports.mi_hub_respondent_data_report import get_mi_hub_respondent_data
