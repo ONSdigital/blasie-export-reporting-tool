@@ -16,24 +16,11 @@ def deliver_mi_hub_reports_cloud_function_processor(
     request_json = get_json_request(request)
     google_storage = init_storage_bucket(config)
 
-    def get_call_history(questionnaire_name, questionnaire_id):
-        return get_mi_hub_call_history(questionnaire_name,
-                                       questionnaire_id,
-                                       get_cati_mi_hub_call_history)
-
-    def get_respondent_data(questionnaire_name):
-        return get_mi_hub_respondent_data(config, questionnaire_name)
-
-    def upload_mi_hub_reports(questionnaire_name, mi_hub_call_history,
-                              mi_hub_respondent_data):
-        return DeliverMiHubReportsService.upload_mi_hub_reports_to_gcp(
-            questionnaire_name, mi_hub_call_history, mi_hub_respondent_data, google_storage)
-
     return get_call_history_data(
         request_json,
-        get_call_history,
-        get_respondent_data,
-        upload_mi_hub_reports
+        create_mi_hub_get_call_history(get_cati_mi_hub_call_history),
+        create_get_respondent_data_with_config(config),
+        create_upload_mi_hub_report(google_storage)
     )
 
 
@@ -69,3 +56,28 @@ def get_call_history_data(request_json, get_call_history, get_respondent_data, u
     mi_hub_respondent_data = get_respondent_data(questionnaire_name)
 
     return upload_reports_to_gcp(questionnaire_name, mi_hub_call_history, mi_hub_respondent_data)
+
+
+def create_mi_hub_get_call_history(get_cati_mi_hub_call_history):
+    def get_call_history(questionnaire_name, questionnaire_id):
+        return get_mi_hub_call_history(questionnaire_name,
+                                       questionnaire_id,
+                                       get_cati_mi_hub_call_history)
+
+    return get_call_history
+
+
+def create_get_respondent_data_with_config(config):
+    def get_respondent_data(questionnaire_name):
+        return get_mi_hub_respondent_data(config, questionnaire_name)
+
+    return get_respondent_data
+
+
+def create_upload_mi_hub_report(google_storage):
+    def upload_mi_hub_reports(questionnaire_name, mi_hub_call_history,
+                              mi_hub_respondent_data):
+        return DeliverMiHubReportsService.upload_mi_hub_reports_to_gcp(
+            questionnaire_name, mi_hub_call_history, mi_hub_respondent_data, google_storage)
+
+    return upload_mi_hub_reports
