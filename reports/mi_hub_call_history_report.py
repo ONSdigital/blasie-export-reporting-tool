@@ -1,10 +1,9 @@
-from data_sources.cati_data import get_cati_mi_hub_call_history_from_database
 from models.mi_hub_call_history_model import MiHubCallHistory
 
 
-def get_mi_hub_call_history(config, questionnaire_name, questionnaire_id):
+def get_mi_hub_call_history(questionnaire_name, questionnaire_id, get_cati_mi_hub_call_history):
     print(f"Getting MI hub call history report data for {questionnaire_name}")
-    cati_data = get_cati_mi_hub_call_history_from_database(config)
+    cati_data = get_cati_mi_hub_call_history()
 
     return [
         create_mi_hub_call_history(item, questionnaire_name)

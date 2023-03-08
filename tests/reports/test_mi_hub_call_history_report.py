@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import Mock
 
 import pytest
 
@@ -25,13 +26,12 @@ def mock_get_mi_hub_call_history_record():
     }
 
 
-@mock.patch("reports.mi_hub_call_history_report.get_cati_mi_hub_call_history_from_database")
-def test_get_mi_hub_call_history_returns_a_list_of_mi_hub_call_history_objects(mock_mi_hub_call_history,
-                                                                               mock_get_mi_hub_call_history_record):
+def test_get_mi_hub_call_history_returns_a_list_of_mi_hub_call_history_objects(mock_get_mi_hub_call_history_record):
+    mock_mi_hub_call_history = Mock()
     mock_mi_hub_call_history.return_value = [
         mock_get_mi_hub_call_history_record
     ]
-    result = get_mi_hub_call_history("foo", "LMS2101_AA1", "1234")
+    result = get_mi_hub_call_history("LMS2101_AA1", "1234", mock_mi_hub_call_history)
     assert result == [create_mi_hub_call_history(mock_get_mi_hub_call_history_record, "LMS2101_AA1")]
 
 

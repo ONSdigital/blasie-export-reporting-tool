@@ -11,6 +11,7 @@ from cloud_functions.deliver_mi_hub_reports import (
     deliver_mi_hub_reports_cloud_function_processor,
 )
 from data_sources.call_history_data import CallHistoryClient
+from data_sources.cati_data import get_cati_mi_hub_call_history_from_database
 from data_sources.questionnaire_data import get_list_of_installed_questionnaires
 from models.config_model import Config
 
@@ -65,7 +66,8 @@ def deliver_mi_hub_reports_processor(request: flask.Request) -> str:
     print("Running Cloud Function - deliver_mi_hub_reports_processor")
     config = Config.from_env()
     config.log()
-    return deliver_mi_hub_reports_cloud_function_processor(request, config)
+    get_cati_mi_hub_call_history = lambda: get_cati_mi_hub_call_history_from_database(config)
+    return deliver_mi_hub_reports_cloud_function_processor(request, config, get_cati_mi_hub_call_history)
 
 
 if os.path.isfile("./.env"):

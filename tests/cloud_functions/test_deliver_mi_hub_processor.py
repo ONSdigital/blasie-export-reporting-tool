@@ -8,6 +8,7 @@ import pytest
 from cloud_functions.deliver_mi_hub_reports import (
     deliver_mi_hub_reports_cloud_function_processor,
 )
+from data_sources.cati_data import get_cati_mi_hub_call_history_from_database
 
 QUESTIONNAIRE_NAME = "LMS2222Z"
 QUESTIONNAIRE_ID = "s0me-r7nd0m-gu1d"
@@ -39,7 +40,7 @@ def test_deliver_mi_hub_reports_cloud_function_processor_raises_exception_when_t
 
     # act & assert
     with pytest.raises(Exception) as err:
-        deliver_mi_hub_reports_cloud_function_processor(mock_request, config)
+        deliver_mi_hub_reports_cloud_function_processor(mock_request, config, "get_cati_mi_hub_call_history")
 
     assert (
         str(err.value)
@@ -57,7 +58,7 @@ def test_deliver_mi_hub_reports_cloud_function_processor_raises_exception_when_g
 
     # act & assert
     with pytest.raises(Exception) as err:
-        deliver_mi_hub_reports_cloud_function_processor(mock_request, config)
+        deliver_mi_hub_reports_cloud_function_processor(mock_request, config, "get_cati_mi_hub_call_history")
 
     assert (
         str(err.value)
@@ -86,11 +87,11 @@ def test_deliver_mi_hub_reports_cloud_function_processor_calls_get_mi_hub_call_h
     _mock_init_google_storage.return_value = fake_google_storage
 
     # act
-    deliver_mi_hub_reports_cloud_function_processor(mock_request, config)
+    deliver_mi_hub_reports_cloud_function_processor(mock_request, config, "get_cati_mi_hub_call_history")
 
     # assert
     _mock_get_mi_hub_call_history.assert_called_with(
-        config, QUESTIONNAIRE_NAME, QUESTIONNAIRE_ID
+        QUESTIONNAIRE_NAME, QUESTIONNAIRE_ID, "get_cati_mi_hub_call_history"
     )
 
 
@@ -115,7 +116,7 @@ def test_deliver_mi_hub_reports_cloud_function_processor_calls_get_mi_hub_respon
     _mock_init_google_storage.return_value = fake_google_storage
 
     # act
-    deliver_mi_hub_reports_cloud_function_processor(mock_request, config)
+    deliver_mi_hub_reports_cloud_function_processor(mock_request, config, "get_cati_mi_hub_call_history")
 
     # assert
     _mock_get_mi_hub_respondent_data.assert_called_with(config, QUESTIONNAIRE_NAME)
@@ -146,7 +147,7 @@ def test_deliver_mi_hub_reports_cloud_function_processor_calls_upload_mi_hub_rep
     _mock_get_mi_hub_respondent_data.return_value = mock_mi_hub_respondent_data
 
     # act
-    deliver_mi_hub_reports_cloud_function_processor(mock_request, config)
+    deliver_mi_hub_reports_cloud_function_processor(mock_request, config, "get_cati_mi_hub_call_history")
 
     # assert
     _mock_upload_mi_hub_reports_to_gcp.assert_called_with(
