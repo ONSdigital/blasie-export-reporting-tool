@@ -5,6 +5,56 @@ from typing import Optional, Union
 from models.database_base_model import DatabaseBase
 
 
+class CallHistoryReport:
+    def __init__(self, cati_data):
+        self.cati_data = cati_data
+        self.data = []
+
+    def populate(self, questionnaire_id, questionnaire_name):
+        for item in self.cati_data:
+            self.populate_call_history_model(item, questionnaire_id, questionnaire_name)
+
+    def populate_call_history_model(self, item, questionnaire_id, questionnaire_name):
+        if item.get("InstrumentId") == questionnaire_id:
+            cati_mi_hub_call_history = MiHubCallHistory(
+                questionnaire_name=questionnaire_name,
+                questionnaire_id=item.get("InstrumentId"),
+                serial_number=item.get("PrimaryKeyValue"),
+                dial_date=self.get_dial_date(item),
+                dial_time=self.get_dial_time(item),
+                end_time=self.get_end_time(item),
+                call_number=item.get("CallNumber"),
+                dial_number=item.get("DialNumber"),
+                interviewer=item.get("Interviewer"),
+                dial_result=item.get("DialResult"),
+                dial_line_number=item.get("DialedNumber"),
+                seconds_interview=item.get("dial_secs"),
+                outcome_code=item.get("OutcomeCode"),
+                cohort=self.get_cohort(item),
+            )
+            self.data.append(cati_mi_hub_call_history)
+
+    @staticmethod
+    def get_dial_date(item):
+        return item.get("StartTime").strftime("%Y%m%d")
+
+    @staticmethod
+    def get_dial_time(item):
+        return item.get("StartTime").strftime("%H:%M:%S")
+
+    @staticmethod
+    def get_end_time(item):
+        if item.get("EndTime") is not None:
+            return item.get("EndTime").strftime("%H:%M:%S")
+
+    @staticmethod
+    def get_cohort(item):
+        if item.get("Cohort") is None:
+            return None
+
+        return item["Cohort"].replace("'", "")
+
+
 @dataclass
 class MiHubCallHistory:
     questionnaire_name: str = ""
