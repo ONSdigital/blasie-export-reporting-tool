@@ -23,13 +23,6 @@ class MiHubCallHistory:
     outcome_code: Union[int, str] = ""
     cohort: str = ""
 
-    def generate_dial_date_and_time_fields(self, start_datetime, end_datetime):
-        self.dial_date = start_datetime.strftime("%Y%m%d")
-        self.dial_time = start_datetime.strftime("%H:%M:%S")
-        if end_datetime is not None:
-            self.end_time = end_datetime.strftime("%H:%M:%S")
-        pass
-
     @classmethod
     def fields(cls):
         return [field.name for field in fields(cls)]

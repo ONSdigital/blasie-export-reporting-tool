@@ -24,6 +24,9 @@ def populate_call_history_model(item, questionnaire_id, questionnaire_name, call
             questionnaire_name=questionnaire_name,
             questionnaire_id=item.get("InstrumentId"),
             serial_number=item.get("PrimaryKeyValue"),
+            dial_date=get_dial_date(item),
+            dial_time=get_dial_time(item),
+            end_time=get_end_time(item),
             call_number=item.get("CallNumber"),
             dial_number=item.get("DialNumber"),
             interviewer=item.get("Interviewer"),
@@ -33,12 +36,22 @@ def populate_call_history_model(item, questionnaire_id, questionnaire_name, call
             outcome_code=item.get("OutcomeCode"),
             cohort=get_cohort(item),
         )
-        cati_mi_hub_call_history.generate_dial_date_and_time_fields(
-            item.get("StartTime"), item.get("EndTime")
-        )
         call_history_data.append(cati_mi_hub_call_history)
 
         return call_history_data
+
+
+def get_dial_date(item):
+    return item.get("StartTime").strftime("%Y%m%d")
+
+
+def get_dial_time(item):
+    return item.get("StartTime").strftime("%H:%M:%S")
+
+
+def get_end_time(item):
+    if item.get("EndTime") is not None:
+        return item.get("EndTime").strftime("%H:%M:%S")
 
 
 def get_cohort(item):
