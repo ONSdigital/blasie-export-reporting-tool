@@ -10,6 +10,7 @@ def get_mi_hub_call_history(config, questionnaire_name, questionnaire_id):
     for item in cati_data:
         if item.get("InstrumentId") == questionnaire_id:
             cati_mi_hub_call_history = MiHubCallHistory(
+                questionnaire_name=questionnaire_name,
                 questionnaire_id=item.get("InstrumentId"),
                 serial_number=item.get("PrimaryKeyValue"),
                 call_number=item.get("CallNumber"),
@@ -24,7 +25,6 @@ def get_mi_hub_call_history(config, questionnaire_name, questionnaire_id):
             cati_mi_hub_call_history.generate_dial_date_and_time_fields(
                 item.get("StartTime"), item.get("EndTime")
             )
-            cati_mi_hub_call_history.questionnaire_name = questionnaire_name
             cati_mi_hub_call_history_list.append(cati_mi_hub_call_history)
     return cati_mi_hub_call_history_list
 
