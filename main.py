@@ -10,7 +10,7 @@ from app.app import app, load_config, setup_app
 from cloud_functions.deliver_mi_hub_reports import (
     deliver_mi_hub_reports_cloud_function_processor,
 )
-from data_sources.call_history_data import CallHistoryClient
+from data_sources.populate_datastore import CallHistoryClient
 from data_sources.questionnaire_data import get_list_of_installed_questionnaires
 from models.config_model import Config
 
