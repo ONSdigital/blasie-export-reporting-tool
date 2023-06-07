@@ -5,7 +5,7 @@ from typing import Optional, Union
 from models.database_base_model import DatabaseBase
 
 
-class CallHistoryReport:
+class MiHubCallHistoryReport:
     def __init__(self, cati_data):
         self.cati_data = cati_data
         self.data = []
@@ -16,7 +16,7 @@ class CallHistoryReport:
 
     def __populate_call_history_model(self, item, questionnaire_id, questionnaire_name):
         if item.get("InstrumentId") == questionnaire_id:
-            cati_mi_hub_call_history = MiHubCallHistory(
+            cati_mi_hub_call_history = MiHubCallHistoryData(
                 questionnaire_name=questionnaire_name,
                 questionnaire_id=item.get("InstrumentId"),
                 serial_number=item.get("PrimaryKeyValue"),
@@ -56,7 +56,7 @@ class CallHistoryReport:
 
 
 @dataclass
-class MiHubCallHistory:
+class MiHubCallHistoryData:
     questionnaire_name: str = ""
     questionnaire_id: Optional[str] = None
     serial_number: Optional[str] = None

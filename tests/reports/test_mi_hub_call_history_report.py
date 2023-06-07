@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from models.mi_hub_call_history_model import MiHubCallHistory
+from models.mi_hub_call_history_model import MiHubCallHistoryData
 from reports.mi_hub_call_history_report import get_mi_hub_call_history
 
 
@@ -47,7 +47,7 @@ def test_mi_hub_call_history_returns_something(mock_mi_hub_call_history):
     ]
     result = get_mi_hub_call_history("foo", "LMS2101_AA1", "1234")
     assert result == [
-        MiHubCallHistory(
+        MiHubCallHistoryData(
             questionnaire_name="LMS2101_AA1",
             questionnaire_id="1234",
             serial_number="9000001",
