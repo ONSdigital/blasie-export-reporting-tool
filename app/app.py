@@ -1,7 +1,7 @@
 from flask import Flask, current_app, jsonify, request
 from google.cloud import datastore
 
-from data_sources.populate_datastore import CallHistoryClient
+from data_sources.call_history_data import CallHistoryClient
 from functions.datastore_functions import get_questionnaires
 from functions.request_handlers import (
     date_handler,

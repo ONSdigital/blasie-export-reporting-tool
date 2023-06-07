@@ -31,7 +31,6 @@ class CallHistoryClient:
         status = self.datastore_client.get(key)
         return status
 
-    # TODO
     def get_cati_call_history(self):
         print(f"Obtaining the call history records in the CATI database")
         results = get_cati_call_history_from_database(self.config)

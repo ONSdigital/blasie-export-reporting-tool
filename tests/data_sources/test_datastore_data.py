@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from data_sources.populate_datastore import CallHistoryClient
+from data_sources.call_history_data import CallHistoryClient
 from models.call_history_model import CallHistory
 from models.config_model import Config
 
@@ -78,7 +78,7 @@ def test_split_into_batches(list_to_split, number_to_split_by, expected):
         "NIFI_STAGING_BUCKET": "nifi_staging_bucket_mock",
     },
 )
-@patch("data_sources.populate_datastore.get_cati_call_history_from_database")
+@patch("data_sources.call_history_data.get_cati_call_history_from_database")
 def test_get_cati_call_history(mock_get_cati_call_history_from_database):
     # Arrange
     mock_get_cati_call_history_from_database.return_value = [
