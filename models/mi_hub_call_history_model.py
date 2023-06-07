@@ -12,17 +12,17 @@ class CallHistoryReport:
 
     def populate(self, questionnaire_id, questionnaire_name):
         for item in self.cati_data:
-            self.populate_call_history_model(item, questionnaire_id, questionnaire_name)
+            self.__populate_call_history_model(item, questionnaire_id, questionnaire_name)
 
-    def populate_call_history_model(self, item, questionnaire_id, questionnaire_name):
+    def __populate_call_history_model(self, item, questionnaire_id, questionnaire_name):
         if item.get("InstrumentId") == questionnaire_id:
             cati_mi_hub_call_history = MiHubCallHistory(
                 questionnaire_name=questionnaire_name,
                 questionnaire_id=item.get("InstrumentId"),
                 serial_number=item.get("PrimaryKeyValue"),
-                dial_date=self.get_dial_date(item),
-                dial_time=self.get_dial_time(item),
-                end_time=self.get_end_time(item),
+                dial_date=self.__get_dial_date(item),
+                dial_time=self.__get_dial_time(item),
+                end_time=self.__get_end_time(item),
                 call_number=item.get("CallNumber"),
                 dial_number=item.get("DialNumber"),
                 interviewer=item.get("Interviewer"),
@@ -30,25 +30,25 @@ class CallHistoryReport:
                 dial_line_number=item.get("DialedNumber"),
                 seconds_interview=item.get("dial_secs"),
                 outcome_code=item.get("OutcomeCode"),
-                cohort=self.get_cohort(item),
+                cohort=self.__get_cohort(item),
             )
             self.data.append(cati_mi_hub_call_history)
 
     @staticmethod
-    def get_dial_date(item):
+    def __get_dial_date(item):
         return item.get("StartTime").strftime("%Y%m%d")
 
     @staticmethod
-    def get_dial_time(item):
+    def __get_dial_time(item):
         return item.get("StartTime").strftime("%H:%M:%S")
 
     @staticmethod
-    def get_end_time(item):
+    def __get_end_time(item):
         if item.get("EndTime") is not None:
             return item.get("EndTime").strftime("%H:%M:%S")
 
     @staticmethod
-    def get_cohort(item):
+    def __get_cohort(item):
         if item.get("Cohort") is None:
             return None
 
