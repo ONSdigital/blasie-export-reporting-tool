@@ -1,8 +1,8 @@
-from models.mi_hub_call_history_model import CatiMiHubCallHistoryTable, MiHubCallHistoryData
+from models.mi_hub_call_history_model import CatiMiHubCallHistoryTable, MiHubCallHistoryDataModel
 
 
 def test_mi_hub_call_history():
-    mi_hub_call_history = MiHubCallHistoryData(
+    mi_hub_call_history = MiHubCallHistoryDataModel(
         questionnaire_id="",
         serial_number="",
         call_number=0,

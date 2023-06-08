@@ -8,7 +8,7 @@ from google.cloud import datastore
 from app.app import app as flask_app
 from models.config_model import Config
 from models.interviewer_call_pattern_model import InterviewerCallPattern
-from models.mi_hub_call_history_model import MiHubCallHistoryData
+from models.mi_hub_call_history_model import MiHubCallHistoryDataModel
 from models.mi_hub_respondent_data_model import MiHubRespondentData
 from tests.helpers.interviewer_call_pattern_helpers import (
     datetime_helper,
@@ -208,9 +208,9 @@ def interviewer_call_pattern_report():
 
 
 @pytest.fixture
-def mock_mi_hub_call_history(questionnaire_name: str) -> List[MiHubCallHistoryData]:
+def mock_mi_hub_call_history(questionnaire_name: str) -> List[MiHubCallHistoryDataModel]:
     return [
-        MiHubCallHistoryData(
+        MiHubCallHistoryDataModel(
             questionnaire_name="LMS2222Z",
             questionnaire_id="s0me-r7nd0m-gu1d",
             serial_number="900001",
@@ -224,7 +224,7 @@ def mock_mi_hub_call_history(questionnaire_name: str) -> List[MiHubCallHistoryDa
             dial_line_number=None,
             outcome_code="461",
         ),
-        MiHubCallHistoryData(
+        MiHubCallHistoryDataModel(
             questionnaire_name="LMS2222Z",
             questionnaire_id="s0me-r7nd0m-gu1d",
             serial_number="900002",
@@ -238,7 +238,7 @@ def mock_mi_hub_call_history(questionnaire_name: str) -> List[MiHubCallHistoryDa
             dial_line_number=None,
             outcome_code="461",
         ),
-        MiHubCallHistoryData(
+        MiHubCallHistoryDataModel(
             questionnaire_name="LMS2222Z",
             questionnaire_id="s0me-r7nd0m-gu1d",
             serial_number="900003",

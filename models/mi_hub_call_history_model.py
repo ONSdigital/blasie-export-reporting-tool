@@ -16,7 +16,7 @@ class MiHubCallHistoryReport:
 
     def __populate_call_history_model(self, item, questionnaire_id, questionnaire_name):
         if item.get("InstrumentId") == questionnaire_id:
-            cati_mi_hub_call_history = MiHubCallHistoryData(
+            cati_mi_hub_call_history = MiHubCallHistoryDataModel(
                 questionnaire_name=questionnaire_name,
                 questionnaire_id=item.get("InstrumentId"),
                 serial_number=item.get("PrimaryKeyValue"),
@@ -56,7 +56,7 @@ class MiHubCallHistoryReport:
 
 
 @dataclass
-class MiHubCallHistoryData:
+class MiHubCallHistoryDataModel:
     questionnaire_name: str = ""
     questionnaire_id: Optional[str] = None
     serial_number: Optional[str] = None
