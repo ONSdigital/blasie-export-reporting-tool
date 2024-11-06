@@ -1,4 +1,6 @@
 from dataclasses import dataclass, fields
+from typing import Optional
+from datetime import datetime
 
 
 @dataclass
@@ -7,11 +9,11 @@ class MiHubRespondentData:
     outcome_code: str
     date_completed: str
     interviewer: str
-    mode: str
+    mode: Optional[str] = None
     postcode: str
-    gender: str
-    date_of_birth: str
-    age: str
+    gender: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+    age: Optional[int] = None
 
     @classmethod
     def fields(cls):
