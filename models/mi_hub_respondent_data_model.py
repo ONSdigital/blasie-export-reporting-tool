@@ -5,15 +5,15 @@ from datetime import datetime
 
 @dataclass
 class MiHubRespondentData:
+    postcode: str
+    mode: Optional[str] = None
+    gender: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+    age: Optional[int] = None
     serial_number: str
     outcome_code: str
     date_completed: str
     interviewer: str
-    mode: Optional[str] = None
-    postcode: str
-    gender: Optional[str] = None
-    date_of_birth: Optional[datetime] = None
-    age: Optional[int] = None
 
     @classmethod
     def fields(cls):

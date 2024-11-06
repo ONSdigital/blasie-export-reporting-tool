@@ -1,5 +1,8 @@
 from data_sources.questionnaire_data import get_questionnaire_data
 from models.mi_hub_respondent_data_model import MiHubRespondentData
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
 
 questionnaire_fields_to_get = [
     {
